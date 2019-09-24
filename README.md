@@ -7,6 +7,7 @@ ShellFront is a simple frontend for shell scripts.
 
 ### Setup
 `make` or `make install` to intall without additional setting.  
+`make remove` to remove the application according to makefile.  
 Appending options:
 > `install` in the following options is necessary for installing. Orders after make is important for correct behaviour.
 
