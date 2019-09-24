@@ -8,7 +8,7 @@ ShellFront is a simple frontend for shell scripts.
 ### Setup
 `make` or `make install` to intall without additional setting.  
 Appending options:
-> `build` in the following options is necessary for installing. Orders after make is important for correct behaviour.
+> `install` in the following options is necessary for installing. Orders after make is important for correct behaviour.
 
 `make remove install` to ignore any namespace collision and install it. **Potentially harmful to system**  
 `make remove install && shellfront [OPTIONS]` to run in testing environment.
