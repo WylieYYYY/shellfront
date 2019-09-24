@@ -37,7 +37,7 @@ if [ -z "$$(ldconfig -p | grep $(1))" ]; then $(call msg,==> $(1) is not install
 endef
 
 # transaction hooks
-build: $(BIN_PATH)
+install: $(BIN_PATH)
 remove:
 	@$(call msg,Removing all associated files,6)
 	sudo rm "$(BIN_PATH)" 2>/dev/null;:

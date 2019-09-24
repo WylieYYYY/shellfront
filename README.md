@@ -6,13 +6,12 @@ ShellFront is a simple frontend for shell scripts.
 - Uses GTK+3 and VTE, portable between linux computers with those packages;
 
 ### Setup
-`make` or `make build` to intall without additional setting.  
+`make` or `make install` to intall without additional setting.  
 Appending options:
 > `build` in the following options is necessary for installing. Orders after make is important for correct behaviour.
 
-`make remove build` to ignore any namespace collision and install it. **Potentially harmful to system**  
-`make remove build && shellfront [OPTIONS]` to run in testing environment.  
-`make build remove` to do nothing.
+`make remove install` to ignore any namespace collision and install it. **Potentially harmful to system**  
+`make remove install && shellfront [OPTIONS]` to run in testing environment.
 ### Gravity Setting Manual
 When gravity is set, the location variable will be interpreted as the distance from the edge specified.  
 GTK+'s window positioning is known to be finicky.  
