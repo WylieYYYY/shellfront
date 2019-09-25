@@ -207,7 +207,7 @@ int main(int argc, char **argv) {
 			free(tmpid);
 			return 1;
 		}
-		char *buf = malloc(11);
+		char buf[11];
 		buf[10] = '\0';
 		fread(buf, 1, 10, tmpfp);
 		fclose(tmpfp);
@@ -223,7 +223,6 @@ int main(int argc, char **argv) {
 			else fprintf(stderr, "PID mismatch in record, use system kill tool\n");
 		}
 		remove(tmpid);
-		free(buf);
 		free(tmpid);
 		return procfp == NULL;
 	}
