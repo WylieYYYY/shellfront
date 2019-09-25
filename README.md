@@ -1,5 +1,5 @@
 # ShellFront
-ShellFront is a simple frontend for shell scripts.
+ShellFront is a simple frontend for linux shell scripts.
 ### Features:
 - Undecorated popup and decorated application style;
 - Customise command to toggle, activate, or deactivate;
