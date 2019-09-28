@@ -6,7 +6,7 @@
 #include <string.h>
 #include <vte/vte.h>
 
-char *tmpid;
+static char *tmpid;
 struct term_conf {
 	unsigned int grav;
 	int x, y;
