@@ -32,6 +32,8 @@ all:
 	@#@$(call msg,==> None required,2)
 	@$(call lib_check,gtk-3)
 	@$(call lib_check,vte-2.91)
+	@$(call msg,Creating make directory,6)
+	mkdir -p "$(BUILD_PATH)"
 
 # dynamic library build
 $(HEADER_PATH):
