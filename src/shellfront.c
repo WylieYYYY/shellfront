@@ -92,9 +92,6 @@ static struct term_conf shellfront_parse(int argc, char **argv) {
 		.grav = 1,
 		.title = "",
 		.cmd = "echo -n Hello World!; sleep infinity",
-		.interactive = FALSE,
-		.toggle = FALSE,
-		.killopt = FALSE
 	};
 	char *loc = "0,0";
 	char *size = "80x24";
