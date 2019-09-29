@@ -10,7 +10,12 @@ struct term_conf {
 	int interactive;
 	int ispopup;
 	int once;
+
+	int toggle;
+	int killopt;
 };
 int shellfront_interpret(int argc, char **argv);
+void shellfront_catch_io_from_arg(int argc, char **argv);
+void shellfront_catch_io(int argc, char **argv, struct term_conf config);
 
 #endif

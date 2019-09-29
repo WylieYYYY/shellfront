@@ -87,17 +87,17 @@ static void activate(GtkApplication *app, struct term_conf *config) {
 	if (config->ispopup) gtk_window_set_keep_above(window, TRUE);
 }
 
-int shellfront_interpret(int argc, char **argv) {
+static struct term_conf shellfront_parse(int argc, char **argv) {
 	struct term_conf config = {
 		.grav = 1,
 		.title = "",
 		.cmd = "echo -n Hello World!; sleep infinity",
-		.interactive = FALSE
+		.interactive = FALSE,
+		.toggle = FALSE,
+		.killopt = FALSE
 	};
 	char *loc = "0,0";
 	char *size = "80x24";
-	int toggle = FALSE;
-	int killopt = FALSE;
 	
 	GOptionEntry options[] = {
 		{
@@ -157,13 +157,13 @@ int shellfront_interpret(int argc, char **argv) {
 			.long_name = "toggle",
 			.short_name = 'T',
 			.arg = G_OPTION_ARG_NONE,
-			.arg_data = &toggle,
+			.arg_data = &config.toggle,
 			.description = "Toggle single instance application, implies -1"
 		}, {
 			.long_name = "kill",
 			.short_name = 'k',
 			.arg = G_OPTION_ARG_NONE,
-			.arg_data = &killopt,
+			.arg_data = &config.killopt,
 			.description = "Kill a single instance application according to command"
 		}, {}
 	};
@@ -172,28 +172,31 @@ int shellfront_interpret(int argc, char **argv) {
 	if (!gtk_init_with_args(&argc, &argv,
 		"- simple frontend for shell scripts", options, NULL, &error)) {
 		fprintf(stderr, "%s\n", error->message);
-		return 1;
+		exit(1);
 	}
 	if (!parse_loc_str(loc, &config.x, &config.y, ",")) {
 		fprintf(stderr, "Incorrect location format, should be X,Y\n");
-		return 1;
+		exit(1);
 	}
 	if (!parse_size_str(size, &config.width, &config.height, "x")) {
 		fprintf(stderr, "Incorrect size format, should be XxY\n");
-		return 1;
+		exit(1);
 	}
 	if (config.grav < 1 || config.grav > 9) {
 		fprintf(stderr, "Incorrect gravity range, see README for usage\n");
-		return 1;
+		exit(1);
 	}
-	if ((toggle && killopt) || (strcmp(config.title, "") && config.ispopup)) {
+	if ((config.toggle && config.killopt) || (strcmp(config.title, "") && config.ispopup)) {
 		fprintf(stderr, "Conflicting arguments, see README for usage\n");
-		return 1;
+		exit(1);
 	}
-	config.once |= (config.ispopup || toggle);
+	config.once |= (config.ispopup || config.toggle);
 	
+	return config;
+}
+static int shellfront_initialize(struct term_conf config) {
 	tmpid = sxprintf("/tmp/shellfront.%lu.lock", hash(config.cmd));
-	if (killopt || (toggle && access(tmpid, F_OK) != -1)) {
+	if (config.killopt || (config.toggle && access(tmpid, F_OK) != -1)) {
 		FILE *tmpfp = fopen(tmpid, "r");
 		if (tmpfp == NULL) {
 			fprintf(stderr, "No instance of application is running or it is not ran with -1\n");
@@ -240,7 +243,60 @@ int shellfront_interpret(int argc, char **argv) {
 	GtkApplication *app = gtk_application_new(appid, G_APPLICATION_FLAGS_NONE);
 	free(appid);
 	g_signal_connect(app, "activate", G_CALLBACK(activate), &config);
-	int status = g_application_run(G_APPLICATION(app), argc, argv);
+	int status = g_application_run(G_APPLICATION(app), 0, NULL);
 	g_object_unref(app);
 	return status;
+}
+
+int shellfront_interpret(int argc, char **argv) {
+	return shellfront_initialize(shellfront_parse(argc, argv));
+}
+
+void shellfront_catch_io_from_arg(int argc, char **argv) {
+	int use_shellfront = TRUE;
+	for (int i = 0; i < argc; i++) {
+		if (strcmp(argv[i], "-c") == 0) {
+			fprintf(stderr, "This application is intended to run without -c switch\n");
+			exit(1);
+		}
+		if (strcmp(argv[i], "--no-shellfront") == 0) {
+			use_shellfront = FALSE;
+		}
+	}
+	if (use_shellfront) {
+		struct term_conf config = shellfront_parse(argc, argv);
+		char *invoke_cmd = sxprintf("%s --no-shellfront", argv[0]);
+		config.cmd = invoke_cmd;
+		int status = shellfront_initialize(config);
+		free(invoke_cmd);
+		exit(status);
+	}
+}
+void shellfront_catch_io(int argc, char **argv, struct term_conf config) {
+	int use_shellfront = TRUE;
+	for (int i = 0; i < argc; i++) {
+		if (strcmp(argv[i], "--no-shellfront") == 0) {
+			use_shellfront = FALSE;
+		}
+	}
+	if (config.cmd != NULL) {
+		fprintf(stderr, "This application is intended to run without -c switch\n");
+		exit(1);
+	}
+	if (use_shellfront) {
+		char *invoke_cmd = sxprintf("%s --no-shellfront", argv[0]);
+		config.cmd = invoke_cmd;
+		if (config.grav == 0) {
+			config.grav = 1;
+		}
+		if (config.width == 0) {
+			config.width = 80;
+		}
+		if (config.height == 0) {
+			config.height = 24;
+		}
+		int status = shellfront_initialize(config);
+		free(invoke_cmd);
+		exit(status);
+	}
 }
