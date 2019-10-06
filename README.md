@@ -40,6 +40,8 @@ For the latter method, if colourised output from pipe is required, `unbuffer` fr
 ShellFront can customize how a terminal program appear as. Size, title, format and etc. can be fixed for maximum user experience.  
 `shellfront_catch_io_from_arg(int argc, char **argv);` allows user to decide how the program will look like by commandline argument.  
 `shellfront_catch_io(int argc, char **argv, struct term_conf config);` lets you to decide how it looks.  
+> `stderr` will still be directed to the old terminal so that error will not appear to normal users.
+
 The `term_conf` struct has default values for all variable, listed below:
 ```
 Window and terminal properties

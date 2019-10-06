@@ -281,7 +281,7 @@ void shellfront_catch_io(int argc, char **argv, struct term_conf config) {
 		exit(1);
 	}
 	if (use_shellfront) {
-		char *invoke_cmd = sxprintf("%s --no-shellfront", argv[0]);
+		char *invoke_cmd = sxprintf("%s --no-shellfront 2>%s", argv[0], ttyname(STDIN_FILENO));
 		config.cmd = invoke_cmd;
 		if (config.grav == 0) {
 			config.grav = 1;
