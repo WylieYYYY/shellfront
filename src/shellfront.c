@@ -102,9 +102,11 @@ static void activate(GtkApplication *app, struct term_conf *config) {
 	// calculations with gravity setting
 	if (config->grav % 3 == 0) config->x = (workarea.width - window_width) - config->x;
 	else if (config->grav % 3 == 2) config->x = (workarea.width - window_width) / 2;
+	// take horizontal taskbar into consideration
+	else config->x += workarea.x;
 	if (config->grav > 6) config->y = (workarea.height - window_height) - config->y;
 	else if (config->grav > 3) config->y = (workarea.height - window_height) / 2;
-	// take taskbar into consideration
+	// take vertical taskbar into consideration
 	else config->y += workarea.y;
 	gtk_window_move(window, config->x, config->y);
 	// keep the popup on top
