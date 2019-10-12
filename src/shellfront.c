@@ -9,26 +9,31 @@
 #include <unistd.h>
 #include <vte/vte.h>
 
+// temporary lock file location, public to be seen by signal handler
 static char *tmpid;
 
 static int parse_size_str(char *size, long *x, long *y, char *delim) {
 	char *cp = strdup(size);
 	*x = atol(strsep(&cp, delim));
 	*y = atol(cp);
+	// size cannot be 0x0 or less
 	return !(*x < 1 || *y < 1);
 }
 static int parse_loc_str(char *size, int *x, int *y, char *delim) {
 	char *cp = strdup(size);
 	*x = atoi(strsep(&cp, delim));
 	*y = atoi(cp);
+	// location must be positive
 	return !(*x < 0 || *y < 0);
 }
+// djb2 hash function for lock file name for normalization
 static unsigned long hash(char *str) {
 	unsigned long hash = 5381;
 	unsigned char ch;
     while ((ch = (unsigned char)*str++)) hash = ((hash << 5) + hash) + ch;
     return hash;
 }
+// allocate and perform snprintf automatically
 static char *sxprintf(char *fmt, ...) {
 	va_list argptr;
 	va_start(argptr, fmt);
@@ -40,54 +45,73 @@ static char *sxprintf(char *fmt, ...) {
 	return str;
 }
 
+// change focus to the window
 static void window_show(GtkWindow *window, void *user_data) { gtk_window_present(window); }
 static void sig_exit(int signo) {
+	// remove lock file and free the ID
 	remove(tmpid);
 	free(tmpid);
 	exit(0);
 }
+// also give out signal to handler when closedd with "once" flag
 static void window_destroy(GtkWindow *window, void *user_data) { sig_exit(2); }
+// if terminal closed, close the window
 static void terminal_exit(VteTerminal *terminal, int status, GtkWindow *window) { gtk_window_close(window); }
 
 static void activate(GtkApplication *app, struct term_conf *config) {
 	GtkWindow *window = GTK_WINDOW(gtk_application_window_new(app));
 	VteTerminal *terminal = VTE_TERMINAL(vte_terminal_new());
 	
+	// remove the lock file and free ID string when window destroy
 	if (config->once) {
 		g_signal_connect(window, "destroy", G_CALLBACK(window_destroy), NULL);
 	}
 	
+	// don't give any attention if it is not interactive
 	if (!config->interactive) gtk_widget_set_sensitive(GTK_WIDGET(terminal), FALSE);
 	else g_signal_connect(window, "show", G_CALLBACK(window_show), NULL);
+	
+	// popup has no title bar, taskbar icon and cannot be resized
 	if (config->ispopup) {
 		gtk_window_set_decorated(window, FALSE);
 		gtk_window_set_skip_taskbar_hint(window, TRUE);
 	} else gtk_window_set_resizable(window, FALSE);
+	// set the window title
 	gtk_window_set_title(window, config->title);
 
 	vte_terminal_set_size(terminal, config->width, config->height);
+	// when command ends, terminal exits
 	g_signal_connect(terminal, "child-exited", G_CALLBACK(terminal_exit), window);
+	// using the default terminal shell
 	char **argv = (char *[]){(char *)g_getenv("SHELL"), "-c", config->cmd, NULL};
+	// no timeout for command
 	vte_terminal_spawn_async(terminal, VTE_PTY_DEFAULT, NULL, argv, NULL,
 		G_SPAWN_SEARCH_PATH, NULL, NULL, NULL, -1, NULL, NULL, NULL);
 
+	// put the terminal into the window and show both
 	gtk_container_add(GTK_CONTAINER(window), GTK_WIDGET(terminal));
 	gtk_widget_show_all(GTK_WIDGET(window));
 	
 	GdkRectangle workarea;
+	// get the available area of the screen
 	gdk_monitor_get_workarea(gdk_display_get_primary_monitor(
 		gdk_display_get_default()), &workarea);
 	int window_width, window_height;
+	// move position after displaying because the exact size is not determined before displaying
 	gtk_window_get_size(window, &window_width, &window_height);
+	// calculations with gravity setting
 	if (config->grav % 3 == 0) config->x = (workarea.width - window_width) - config->x;
 	else if (config->grav % 3 == 2) config->x = (workarea.width - window_width) / 2;
 	if (config->grav > 6) config->y = (workarea.height - window_height) - config->y;
 	else if (config->grav > 3) config->y = (workarea.height - window_height) / 2;
 	gtk_window_move(window, config->x, config->y);
+	// keep the popup on top
 	if (config->ispopup) gtk_window_set_keep_above(window, TRUE);
 }
 
+// accept and parse flags into configuration struct
 static struct term_conf shellfront_parse(int argc, char **argv) {
+	// default configurations
 	struct term_conf config = {
 		.grav = 1,
 		.title = "",
@@ -96,6 +120,7 @@ static struct term_conf shellfront_parse(int argc, char **argv) {
 	char *loc = "0,0";
 	char *size = "80x24";
 	
+	// options and help messages
 	GOptionEntry options[] = {
 		{
 			.long_name = "once",
@@ -166,11 +191,13 @@ static struct term_conf shellfront_parse(int argc, char **argv) {
 	};
 	
 	GError *error = NULL;
+	// description and error report
 	if (!gtk_init_with_args(&argc, &argv,
 		"- simple frontend for shell scripts", options, NULL, &error)) {
 		fprintf(stderr, "%s\n", error->message);
 		exit(1);
 	}
+	// options validation
 	if (!parse_loc_str(loc, &config.x, &config.y, ",")) {
 		fprintf(stderr, "Incorrect location format, should be X,Y\n");
 		exit(1);
@@ -187,24 +214,31 @@ static struct term_conf shellfront_parse(int argc, char **argv) {
 		fprintf(stderr, "Conflicting arguments, see README for usage\n");
 		exit(1);
 	}
+	// implied flag
 	config.once |= (config.ispopup || config.toggle);
 	
 	return config;
 }
+// start the GUI with configuration struct
 static int shellfront_initialize(struct term_conf config) {
+	// get lock file name
 	tmpid = sxprintf("/tmp/shellfront.%lu.lock", hash(config.cmd));
+	// if it is killing by flag or toggle
 	if (config.killopt || (config.toggle && access(tmpid, F_OK) != -1)) {
+		// target must have "once" flag, so lock file must be accessible
 		FILE *tmpfp = fopen(tmpid, "r");
 		if (tmpfp == NULL) {
 			fprintf(stderr, "No instance of application is running or it is not ran with -1\n");
 			free(tmpid);
 			return 1;
 		}
+		// HDB UUCP lock file format process ID must be no longer than 10 characters
 		char buf[11];
 		buf[10] = '\0';
 		fread(buf, 1, 10, tmpfp);
 		fclose(tmpfp);
 		int pid = atoi(buf);
+		// open the process description file
 		char *procid = sxprintf("/proc/%i/comm", pid);
 		FILE *procfp = fopen(procid, "r");
 		free(procid);
@@ -212,16 +246,20 @@ static int shellfront_initialize(struct term_conf config) {
 		else {
 			fread(buf, 1, 10, procfp);
 			fclose(procfp);
+			// if it is indeed belong to "shellfront", kill it
 			if (strcmp(buf, "shellfront") == 0) kill(pid, SIGTERM);
 			else fprintf(stderr, "PID mismatch in record, use system kill tool\n");
 		}
+		// remove lock file and free resource
 		remove(tmpid);
 		free(tmpid);
 		return procfp == NULL;
 	}
 	
+	// get this process's process ID
 	int pid = getpid();
 	if (config.once) {
+		// write HDB UUCP lock file if ran with "once" flag
 		FILE *tmpfp = fopen(tmpid, "wx");
 		if (tmpfp == NULL) {
 			fprintf(stderr, "Existing instance is running, remove -1 flag or '%s' to unlock\n", tmpid);
@@ -231,14 +269,18 @@ static int shellfront_initialize(struct term_conf config) {
 		int pidlen = snprintf(NULL, 0, "%i", pid);
 		fprintf(tmpfp, "%*s%i\r\n", 10 - pidlen, "", pid);
 		fclose(tmpfp);
+		// clean up if terminated with SIGTERM or SIGINT (for terminal ^C)
 		struct sigaction exithandler = { .sa_handler = sig_exit };
 		sigaction(SIGINT, &exithandler, NULL);
 		sigaction(SIGTERM, &exithandler, NULL);
+		// free the lock file name because it is irrelevant for multiple instance application
 	} else free(tmpid);
 	
+	// PID is guarenteed unique and can be used as APPID
 	char *appid = sxprintf("shellfront.proc%i", pid);
 	GtkApplication *app = gtk_application_new(appid, G_APPLICATION_FLAGS_NONE);
 	free(appid);
+	// link terminal setup function
 	g_signal_connect(app, "activate", G_CALLBACK(activate), &config);
 	int status = g_application_run(G_APPLICATION(app), 0, NULL);
 	g_object_unref(app);
@@ -250,8 +292,10 @@ int shellfront_interpret(int argc, char **argv) {
 }
 
 void shellfront_catch_io_from_arg(int argc, char **argv) {
+	// check whether this instance should use shellfront
 	int use_shellfront = TRUE;
 	for (int i = 0; i < argc; i++) {
+		// this function is intended to catch itself as command
 		if (strcmp(argv[i], "-c") == 0) {
 			fprintf(stderr, "This application is intended to run without -c switch\n");
 			exit(1);
@@ -262,7 +306,9 @@ void shellfront_catch_io_from_arg(int argc, char **argv) {
 	}
 	if (use_shellfront) {
 		struct term_conf config = shellfront_parse(argc, argv);
-		char *invoke_cmd = sxprintf("%s --no-shellfront", argv[0]);
+		// if the program is reinitialized in shellfront, it should not initialize shellfront again in new instance
+		// redirect error to the old terminal
+		char *invoke_cmd = sxprintf("%s --no-shellfront 2>%s", argv[0], ttyname(STDIN_FILENO));
 		config.cmd = invoke_cmd;
 		int status = shellfront_initialize(config);
 		free(invoke_cmd);
@@ -276,6 +322,7 @@ void shellfront_catch_io(int argc, char **argv, struct term_conf config) {
 			use_shellfront = FALSE;
 		}
 	}
+	// this time argv is ignored except the "--no-shellfront" flag, so if there is "-c" in argv, it doesn't matter
 	if (config.cmd != NULL) {
 		fprintf(stderr, "This application is intended to run without -c switch\n");
 		exit(1);
@@ -283,6 +330,7 @@ void shellfront_catch_io(int argc, char **argv, struct term_conf config) {
 	if (use_shellfront) {
 		char *invoke_cmd = sxprintf("%s --no-shellfront 2>%s", argv[0], ttyname(STDIN_FILENO));
 		config.cmd = invoke_cmd;
+		// initialize with default values if not defined in the struct
 		if (config.grav == 0) {
 			config.grav = 1;
 		}
