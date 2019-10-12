@@ -1,5 +1,5 @@
-#ifndef __SHELLFRONT__
-#define __SHELLFRONT__
+#ifndef SHELLFRONT_H
+#define SHELLFRONT_H
 
 // configuration structure
 struct term_conf {
