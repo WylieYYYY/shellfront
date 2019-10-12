@@ -104,8 +104,8 @@ static void activate(GtkApplication *app, struct term_conf *config) {
 	else if (config->grav % 3 == 2) config->x = (workarea.width - window_width) / 2;
 	if (config->grav > 6) config->y = (workarea.height - window_height) - config->y;
 	else if (config->grav > 3) config->y = (workarea.height - window_height) / 2;
-	// if there is a title bar, take it into account for the position
-	else if (!config->ispopup) config->y += workarea.y;
+	// take taskbar into consideration
+	else config->y += workarea.y;
 	gtk_window_move(window, config->x, config->y);
 	// keep the popup on top
 	if (config->ispopup) gtk_window_set_keep_above(window, TRUE);

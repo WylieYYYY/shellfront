@@ -2,7 +2,7 @@
 ShellFront is a simple frontend for linux shell scripts.
 #### Screenshot
 Alsamixer started from right-clicking the clock in tint2.  
-![Example Screenshot](screenshot.png "shellfront -Tips 30x14 -g 3 -l 0,30 -c 'alsamixer'")
+![Example Screenshot](screenshot.png "shellfront -Tips 30x14 -g 3 -l 0,0 -c 'alsamixer'")
 ### Features:
 - Undecorated popup and decorated application style;
 - Customise command to toggle, activate, or deactivate;
