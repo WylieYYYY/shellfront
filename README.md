@@ -9,6 +9,7 @@ Alsamixer started from right-clicking the clock in tint2.
 - Uses GTK+3 and VTE, portable between linux computers with those packages;
 
 ### Setup
+Makefile options such as install location and compiler can be modified in the first few lines of the file.  
 `make` or `make install` to intall without additional setting.  
 `make clean` to install and remove all object created after building.  
 `make remove` to remove the application according to makefile.  
