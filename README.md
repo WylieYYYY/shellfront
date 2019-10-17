@@ -9,15 +9,14 @@ Alsamixer started from right-clicking the clock in tint2.
 - Uses GTK+3 and VTE, portable between linux computers with those packages;
 
 ### Setup
-Makefile options such as install location and compiler can be modified in the first few lines of the file.  
-`make` or `make install` to intall without additional setting.  
-`make clean` to install and remove all object created after building.  
-`make remove` to remove the application according to makefile.  
-Appending options:
-> `install` in the following options is necessary for installing. Orders after make is important for correct behaviour.
-
-`make remove install` to ignore any namespace collision and install it. **Potentially harmful to system**  
-`make remove install && shellfront [OPTIONS]` to run in testing environment.
+ShellFront can be installed by using autotools:
+```
+autoreconf --install
+./configure
+make
+sudo make install
+```
+Can be uninstalled by using `sudo make uninstall`.
 ### Using directly in terminal
 Different switches are available, help can be called with `shellfront --help` or `shellfront -h`
 #### Gravity Setting
