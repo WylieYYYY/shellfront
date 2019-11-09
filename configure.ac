@@ -6,6 +6,6 @@ AC_PROG_CC
 LT_INIT
 PKG_CHECK_MODULES([GTK], [gtk+-3.0 >= 3.10])
 PKG_CHECK_MODULES([VTE], [vte-2.91 >= 0.43])
-AC_CONFIG_FILES([makefile])
+AC_CONFIG_FILES([makefile shellfront.pc])
 AC_PROG_INSTALL
 AC_OUTPUT

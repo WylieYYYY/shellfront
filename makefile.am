@@ -1,5 +1,8 @@
 include_HEADERS = shellfront.h
 
+pkgconfigdir = /usr/lib/pkgconfig
+pkgconfig_DATA = shellfront.pc
+
 lib_LTLIBRARIES = libshellfront.la
 libshellfront_la_CFLAGS = $(GTK_CFLAGS) $(VTE_CFLAGS)
 libshellfront_la_LDFLAGS = $(GTK_LIBS) $(VTE_LIBS)
