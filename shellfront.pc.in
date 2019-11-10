@@ -9,4 +9,4 @@ Version: @VERSION@
 Requires: gtk+-3.0 >= 3.10 vte-2.91 >= 0.43
 Conflicts:
 Cflags: -I${includedir}
-Libs: -L${libdir} -lshellfront
+Libs: -Wl,-rpath=${libdir} -lshellfront
