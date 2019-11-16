@@ -1,7 +1,7 @@
 include_HEADERS = shellfront.h
 
 lib_LTLIBRARIES = libshellfront.la
-libshellfront_la_SOURCES = libshellfront.h util.c gtkfunc.c usrfunc.c
+libshellfront_la_SOURCES = internal.h util.c gtkfunc.c interface.c libfunc.c
 libshellfront_la_CFLAGS = $(GTK_CFLAGS) $(VTE_CFLAGS)
 libshellfront_la_LDFLAGS = $(GTK_LIBS) $(VTE_LIBS)
 
