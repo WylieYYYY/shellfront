@@ -1,12 +1,4 @@
-include_HEADERS = shellfront.h
+SUBDIRS = src
 
 pkgconfigdir = /usr/lib/pkgconfig
 pkgconfig_DATA = shellfront.pc
-
-lib_LTLIBRARIES = libshellfront.la
-libshellfront_la_CFLAGS = $(GTK_CFLAGS) $(VTE_CFLAGS)
-libshellfront_la_LDFLAGS = $(GTK_LIBS) $(VTE_LIBS)
-
-bin_PROGRAMS = shellfront
-shellfront_SOURCES = main.c
-shellfront_LDADD = libshellfront.la

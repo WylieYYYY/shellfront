@@ -1,49 +1,15 @@
+#include "internal.h"
 #include "shellfront.h"
 
 #include <gtk/gtk.h>
 #include <signal.h>
-#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 #include <vte/vte.h>
 
 // temporary lock file location, public to be seen by signal handler
 static char *tmpid;
-
-static int parse_size_str(char *size, long *x, long *y, char *delim) {
-	char *cp = strdup(size);
-	*x = atol(strsep(&cp, delim));
-	*y = atol(cp);
-	// size cannot be 0x0 or less
-	return !(*x < 1 || *y < 1);
-}
-static int parse_loc_str(char *size, int *x, int *y, char *delim) {
-	char *cp = strdup(size);
-	*x = atoi(strsep(&cp, delim));
-	*y = atoi(cp);
-	// location must be positive
-	return !(*x < 0 || *y < 0);
-}
-// djb2 hash function for lock file name for normalization
-static unsigned long hash(char *str) {
-	unsigned long hash = 5381;
-	unsigned char ch;
-    while ((ch = (unsigned char)*str++)) hash = ((hash << 5) + hash) + ch;
-    return hash;
-}
-// allocate and perform snprintf automatically
-static char *sxprintf(char *fmt, ...) {
-	va_list argptr;
-	va_start(argptr, fmt);
-	int size = vsnprintf(NULL, 0, fmt, argptr) + 1;
-	char *str = malloc(size);
-	va_start(argptr, fmt);
-	vsnprintf(str, size, fmt, argptr);
-	va_end(argptr);
-	return str;
-}
 
 // change focus to the window
 static void window_show(GtkWindow *window, void *user_data) { gtk_window_present(window); }
@@ -113,8 +79,7 @@ static void activate(GtkApplication *app, struct term_conf *config) {
 	if (config->ispopup) gtk_window_set_keep_above(window, TRUE);
 }
 
-// accept and parse flags into configuration struct
-static struct term_conf shellfront_parse(int argc, char **argv) {
+struct term_conf shellfront_parse(int argc, char **argv) {
 	// default configurations
 	struct term_conf config = {
 		.grav = 1,
@@ -223,8 +188,7 @@ static struct term_conf shellfront_parse(int argc, char **argv) {
 	
 	return config;
 }
-// start the GUI with configuration struct
-static int shellfront_initialize(struct term_conf config) {
+int shellfront_initialize(struct term_conf config) {
 	// get lock file name
 	tmpid = sxprintf("/tmp/shellfront.%lu.lock", hash(config.cmd));
 	// if it is killing by flag or toggle
@@ -289,63 +253,4 @@ static int shellfront_initialize(struct term_conf config) {
 	int status = g_application_run(G_APPLICATION(app), 0, NULL);
 	g_object_unref(app);
 	return status;
-}
-
-int shellfront_interpret(int argc, char **argv) {
-	return shellfront_initialize(shellfront_parse(argc, argv));
-}
-
-void shellfront_catch_io_from_arg(int argc, char **argv) {
-	// check whether this instance should use shellfront
-	int use_shellfront = TRUE;
-	for (int i = 0; i < argc; i++) {
-		// this function is intended to catch itself as command
-		if (strcmp(argv[i], "-c") == 0) {
-			fprintf(stderr, "This application is intended to run without -c switch\n");
-			exit(1);
-		}
-		if (strcmp(argv[i], "--no-shellfront") == 0) {
-			use_shellfront = FALSE;
-		}
-	}
-	if (use_shellfront) {
-		struct term_conf config = shellfront_parse(argc, argv);
-		// if the program is reinitialized in shellfront, it should not initialize shellfront again in new instance
-		// redirect error to the old terminal
-		char *invoke_cmd = sxprintf("%s --no-shellfront 2>%s", argv[0], ttyname(STDIN_FILENO));
-		config.cmd = invoke_cmd;
-		int status = shellfront_initialize(config);
-		free(invoke_cmd);
-		exit(status);
-	}
-}
-void shellfront_catch_io(int argc, char **argv, struct term_conf config) {
-	int use_shellfront = TRUE;
-	for (int i = 0; i < argc; i++) {
-		if (strcmp(argv[i], "--no-shellfront") == 0) {
-			use_shellfront = FALSE;
-		}
-	}
-	// this time argv is ignored except the "--no-shellfront" flag, so if there is "-c" in argv, it doesn't matter
-	if (config.cmd != NULL) {
-		fprintf(stderr, "This application is intended to run without -c switch\n");
-		exit(1);
-	}
-	if (use_shellfront) {
-		char *invoke_cmd = sxprintf("%s --no-shellfront 2>%s", argv[0], ttyname(STDIN_FILENO));
-		config.cmd = invoke_cmd;
-		// initialize with default values if not defined in the struct
-		if (config.grav == 0) {
-			config.grav = 1;
-		}
-		if (config.width == 0) {
-			config.width = 80;
-		}
-		if (config.height == 0) {
-			config.height = 24;
-		}
-		int status = shellfront_initialize(config);
-		free(invoke_cmd);
-		exit(status);
-	}
 }
