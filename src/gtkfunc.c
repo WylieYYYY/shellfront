@@ -23,8 +23,9 @@ static void sig_exit(int signo) {
 static void window_destroy(GtkWindow *window, void *user_data) { sig_exit(2); }
 // if terminal closed, close the window
 static void terminal_exit(VteTerminal *terminal, int status, GtkWindow *window) { gtk_window_close(window); }
+static void window_focus_out(GtkWidget *widget, GdkEvent *event, GtkWindow *window) { gtk_window_close(window); }
 
-static void activate(GtkApplication *app, struct term_conf *config) {
+static void gtk_activate(GtkApplication *app, struct term_conf *config) {
 	GtkWindow *window = GTK_WINDOW(gtk_application_window_new(app));
 	VteTerminal *terminal = VTE_TERMINAL(vte_terminal_new());
 	
@@ -35,15 +36,21 @@ static void activate(GtkApplication *app, struct term_conf *config) {
 	
 	// don't give any attention if it is not interactive
 	if (!config->interactive) gtk_widget_set_sensitive(GTK_WIDGET(terminal), FALSE);
-	else g_signal_connect(window, "show", G_CALLBACK(window_show), NULL);
 	
-	// popup has no title bar, taskbar icon and cannot be resized
+	// all type of window is not resizable
 	if (config->ispopup) {
+		// no title bar and icon
 		gtk_window_set_decorated(window, FALSE);
 		gtk_window_set_skip_taskbar_hint(window, TRUE);
+		// close popup when focus is out
+		gtk_widget_set_events(GTK_WIDGET(window), GDK_FOCUS_CHANGE_MASK);
+		g_signal_connect(GTK_WIDGET(window), "focus-out-event", G_CALLBACK(window_focus_out), window);
 	} else gtk_window_set_resizable(window, FALSE);
+	
 	// set the window title
 	gtk_window_set_title(window, config->title);
+	// change focus to window when shown
+	g_signal_connect(window, "show", G_CALLBACK(window_show), NULL);
 
 	vte_terminal_set_size(terminal, config->width, config->height);
 	// when command ends, terminal exits
@@ -249,7 +256,7 @@ int shellfront_initialize(struct term_conf config) {
 	GtkApplication *app = gtk_application_new(appid, G_APPLICATION_FLAGS_NONE);
 	free(appid);
 	// link terminal setup function
-	g_signal_connect(app, "activate", G_CALLBACK(activate), &config);
+	g_signal_connect(app, "activate", G_CALLBACK(gtk_activate), &config);
 	int status = g_application_run(G_APPLICATION(app), 0, NULL);
 	g_object_unref(app);
 	return status;
