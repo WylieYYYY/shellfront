@@ -7,22 +7,28 @@
 #include <vte/vte.h>
 
 // change focus to the window
-static void window_show(GtkWindow *window, void *user_data) { gtk_window_present(window); }
+static void window_show(GtkWindow *window, void *user_data) {
+	gtk_window_present(window);
+}
 
 // also give out signal to handler when closedd with "once" flag
-static void window_destroy(GtkWindow *window, void *user_data) { sig_exit(2); }
+static void window_destroy(GtkWindow *window, void *user_data) {
+	sig_exit(2);
+}
 // if terminal closed, close the window
-static void terminal_exit(VteTerminal *terminal, int status, GtkWindow *window) { gtk_window_close(window); }
-static void window_focus_out(GtkWidget *widget, GdkEvent *event, GtkWindow *window) { gtk_window_close(window); }
+static void terminal_exit(VteTerminal *terminal, int status, GtkWindow *window) {
+	gtk_window_close(window);
+}
+static void window_focus_out(GtkWidget *widget, GdkEvent *event, GtkWindow *window) {
+	gtk_window_close(window);
+}
 
 void gtk_activate(GtkApplication *app, struct term_conf *config) {
 	GtkWindow *window = GTK_WINDOW(gtk_application_window_new(GTK_APPLICATION(app)));
 	VteTerminal *terminal = VTE_TERMINAL(vte_terminal_new());
 	
 	// remove the lock file and free ID string when window destroy
-	if (config->once) {
-		g_signal_connect(window, "destroy", G_CALLBACK(window_destroy), NULL);
-	}
+	if (config->once) g_signal_connect(window, "destroy", G_CALLBACK(window_destroy), NULL);
 	
 	// don't give any attention if it is not interactive
 	if (!config->interactive) gtk_widget_set_sensitive(GTK_WIDGET(terminal), FALSE);
@@ -57,8 +63,7 @@ void gtk_activate(GtkApplication *app, struct term_conf *config) {
 	
 	GdkRectangle workarea;
 	// get the available area of the screen
-	gdk_monitor_get_workarea(gdk_display_get_primary_monitor(
-		gdk_display_get_default()), &workarea);
+	gdk_monitor_get_workarea(gdk_display_get_primary_monitor(gdk_display_get_default()), &workarea);
 	int window_width, window_height;
 	// move position after displaying because the exact size is not determined before displaying
 	gtk_window_get_size(window, &window_width, &window_height);
