@@ -1,0 +1,10 @@
+image: gcc:latest
+
+build:
+    before_script:
+        - apt-get update
+        - apt-get install -y autoconf automake libgtk-3-dev libtool libvte-2.91-dev pkg-config
+    script:
+        - autoreconf -i
+        - ./configure
+        - make
