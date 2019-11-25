@@ -1,6 +1,7 @@
 image: registry.gitlab.com/wylieyyyy/shellfront:latest
 
 build:
+    stage: build
     script:
         - autoreconf -i
         - ./configure

@@ -9,9 +9,16 @@ Alsamixer started from right-clicking the clock in tint2.
 - Uses GTK+3 and VTE, portable between linux computers with those packages;
 
 ### Setup
+Required dependencies:
+```
+autoconf automake libtool pkg-config
+```
+GTK+, VTE dependencies for ArchLinux: `gtk3 vte3`  
+GTK+, VTE dependencies for Ubuntu: `libgtk-3-dev libvte-2.91-dev`  
+Other distros should also install GTK+ and VTE development package from repositories or build from source.  
 ShellFront can be installed by using autotools:
 ```
-autoreconf --install
+autoreconf -i
 ./configure
 make
 sudo make install
