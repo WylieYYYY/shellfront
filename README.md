@@ -1,4 +1,6 @@
 # ShellFront
+[![pipeline status](https://gitlab.com/WylieYYYY/shellfront/badges/master/pipeline.svg)](https://gitlab.com/WylieYYYY/shellfront/commits/master)
+[![coverage report](https://gitlab.com/WylieYYYY/shellfront/badges/master/coverage.svg)](https://gitlab.com/WylieYYYY/shellfront/commits/master)  
 ShellFront is a simple frontend for linux shell scripts (Shellfront is pronounce as "shelf-front" as in the icon).
 #### Screenshot
 Alsamixer started from right-clicking the clock in tint2.  
