@@ -10,8 +10,10 @@ build:
         - autoreconf -i
         - ./configure
         - make
+
 test:
     stage: test
+    script:
         - make clean
         - ./configure --enable-unit-tests
         - make
