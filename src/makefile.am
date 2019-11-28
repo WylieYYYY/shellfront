@@ -1,10 +1,23 @@
 include_HEADERS = shellfront.h
 
+if UNIT_TESTS
+GCOVR_CFLAGS = -fprofile-arcs -ftest-coverage -fPIC -O0
+else
+GCOVR_CFLAGS =
+endif
+
 lib_LTLIBRARIES = libshellfront.la
 libshellfront_la_SOURCES = util.c gtkfunc.c interface.c libfunc.c
-libshellfront_la_CFLAGS = $(GTK_CFLAGS) $(VTE_CFLAGS)
+libshellfront_la_CFLAGS = $(GTK_CFLAGS) $(VTE_CFLAGS) $(GCOVR_CFLAGS)
 libshellfront_la_LDFLAGS = $(GTK_LIBS) $(VTE_LIBS)
 
+if UNIT_TESTS
+bin_PROGRAMS = test
+test_SOURCES = t_util.c
+test_CFLAGS = $(GCOVR_CFLAGS)
+test_LDADD = libshellfront.la
+else
 bin_PROGRAMS = shellfront
 shellfront_SOURCES = main.c
 shellfront_LDADD = libshellfront.la
+endif

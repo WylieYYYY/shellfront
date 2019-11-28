@@ -1,8 +1,19 @@
 image: registry.gitlab.com/wylieyyyy/shellfront:latest
 
+stages:
+    - build
+    - test
+
 build:
     stage: build
     script:
         - autoreconf -i
         - ./configure
         - make
+test:
+    stage: test
+        - make clean
+        - ./configure --enable-unit-tests
+        - make
+        - src/test
+        - gcovr -r src --branches
