@@ -1,4 +1,3 @@
-// GCOVR_EXCL_START
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
@@ -29,4 +28,3 @@ int main(int argc, char **argv) {
 	
 	return 0;
 }
-// GCOVR_EXCL_STOP
