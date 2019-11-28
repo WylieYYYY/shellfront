@@ -2,6 +2,7 @@ image: registry.gitlab.com/wylieyyyy/shellfront:latest
 
 stages:
     - build
+    - make
     - test
 
 build-pkg:
@@ -13,7 +14,7 @@ build-pkg:
             - "*"
 
 make-pkg:
-    stage: build
+    stage: make
     script:
         - ./configure
         - make
