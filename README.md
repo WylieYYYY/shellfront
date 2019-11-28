@@ -6,31 +6,26 @@ ShellFront is a simple frontend for linux shell scripts (Shellfront is pronounce
 Alsamixer started from right-clicking the clock in tint2.  
 ![Example Screenshot](screenshot.png "shellfront -Tips 30x14 -g 3 -l 0,0 -c 'alsamixer'")
 ### Features:
-- Undecorated popup and decorated application style;
+- Undecorated popup and decorated window style;
 - Customise command to toggle, activate, or deactivate;
-- Uses GTK+3 and VTE, portable between linux computers with those packages;
+- Uses GTK3 and VTE, portable between linux computers;
+- Integrate to other applications as C library;
 
 ### Setup
-Required dependencies:
-```
-autoconf automake libtool pkg-config
-```
-GTK+, VTE dependencies for ArchLinux: `gtk3 vte3`  
-GTK+, VTE dependencies for Ubuntu: `libgtk-3-dev libvte-2.91-dev`  
-Other distros should also install GTK+ and VTE development package from repositories or build from source.  
-ShellFront can be installed by using autotools:
-```
-autoreconf -i
-./configure
-make
-sudo make install
-```
-Can be uninstalled by using `sudo make uninstall`.
+1. Download the compressed package from [here](-/jobs/artifacts/master/download?job=build-pkg) and extract to a directory with a name
+   without whitespaces. Then, install the following packages.
+2. Install the following packages:  
+   For ArchLinux: `gtk3 vte3`  
+   For Ubuntu: `libgtk-3-dev libvte-2.91-dev`  
+   Other distros should also install GTK and VTE development package from repositories or build from source.
+3. ShellFront can then be installed by using `./configure && make` and `sudo make install`
+
+The package can be uninstalled by using `sudo make uninstall` in the same directory.
 ### Using directly in terminal
 Different switches are available, help can be called with `shellfront --help` or `shellfront -h`
 #### Gravity Setting
 When gravity is set, the location variable will be interpreted as the distance from the edge specified.  
-GTK+'s window positioning is known to be finicky.  
+GTK's window positioning is known to be finicky.  
 Default setting is `1 (Top-left)`.  
 Corresponding coordinates as below:
 ```
