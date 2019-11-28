@@ -4,17 +4,23 @@ stages:
     - build
     - test
 
-build:
+build-pkg:
     stage: build
     script:
         - autoreconf -i
+    artifacts:
+        paths:
+            - "*"
+
+make-pkg:
+    stage: build
+    script:
         - ./configure
         - make
 
 test:
     stage: test
     script:
-        - make clean
         - ./configure --enable-unit-tests
         - make
         - src/test
