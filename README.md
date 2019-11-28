@@ -12,7 +12,7 @@ Alsamixer started from right-clicking the clock in tint2.
 - Integrate to other applications as C library;
 
 ### Setup
-1. Download the compressed package from [here](-/jobs/artifacts/master/download?job=build-pkg) and extract to a directory with a name
+1. Download the compressed package from [here](../-/jobs/artifacts/master/download?job=build-pkg) and extract to a directory with a name
    without whitespaces. Then, install the following packages.
 2. Install the following packages:  
    For ArchLinux: `gtk3 vte3`  
