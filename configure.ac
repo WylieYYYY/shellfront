@@ -13,7 +13,7 @@ AC_ARG_ENABLE([unit-tests],
 	[AS_HELP_STRING([--enable-unit-tests], [run unit tests])],
 	[enable_unit_tests="yes"], [enable_unit_tests="no"])
 AC_MSG_RESULT([$enable_unit_tests])
-AM_CONDITIONAL([UNIT_TESTS], [test "X$enable_unit_tests" = "Xyes"])
+AM_CONDITIONAL([UNIT_TEST], [test "X$enable_unit_tests" = "Xyes"])
 
 AC_CONFIG_FILES([src/makefile makefile shellfront.pc])
 AC_PROG_INSTALL

@@ -8,6 +8,7 @@ stages:
 build-pkg:
     stage: build
     script:
+        - rm -rf .git
         - autoreconf -i
     artifacts:
         paths:

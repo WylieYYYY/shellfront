@@ -1,7 +1,7 @@
 include_HEADERS = shellfront.h
 
-if UNIT_TESTS
-GCOVR_CFLAGS = -fprofile-arcs -ftest-coverage -fPIC -O0
+if UNIT_TEST
+GCOVR_CFLAGS = -fprofile-arcs -ftest-coverage -fPIC -O0 -DUNIT_TEST
 else
 GCOVR_CFLAGS =
 endif
@@ -11,7 +11,7 @@ libshellfront_la_SOURCES = util.c gtkfunc.c interface.c libfunc.c
 libshellfront_la_CFLAGS = $(GTK_CFLAGS) $(VTE_CFLAGS) $(GCOVR_CFLAGS)
 libshellfront_la_LDFLAGS = $(GTK_LIBS) $(VTE_LIBS)
 
-if UNIT_TESTS
+if UNIT_TEST
 bin_PROGRAMS = test
 test_SOURCES = t_util.c
 test_CFLAGS = $(GCOVR_CFLAGS)
