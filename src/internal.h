@@ -7,6 +7,8 @@
 
 // util.c
 
+// set error struct faster
+struct err_state define_error(char *msg);
 // parse window size argument
 int parse_size_str(char *size, long *x, long *y, char *delim);
 // parse window location argument
@@ -26,8 +28,8 @@ void gtk_activate(GtkApplication *app, struct term_conf *config);
 // cleanup no matter how it is terminated
 void sig_exit(int signo);
 // start the GUI with configuration struct
-int shellfront_initialize(struct term_conf config);
+struct err_state shellfront_initialize(struct term_conf config);
 // accept and parse flags into configuration struct
-struct term_conf shellfront_parse(int argc, char **argv);
+struct err_state shellfront_parse(int argc, char **argv, struct term_conf *parsed_conf);
 
 #endif

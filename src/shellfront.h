@@ -5,6 +5,13 @@
 extern "C" {
 #endif 
 
+// error structure
+struct err_state {
+	// flag for when error occured
+	int has_error;
+	// human readable error message
+	char errmsg[50];
+};
 // configuration structure
 struct term_conf {
 	// window gravity toward edges
@@ -28,11 +35,11 @@ struct term_conf {
 	int killopt;
 };
 // passing arguments and use shellfront just like invoking in terminal
-int shellfront_interpret(int argc, char **argv);
+struct err_state shellfront_interpret(int argc, char **argv);
 // let user to choose how the application is displayed
-void shellfront_catch_io_from_arg(int argc, char **argv);
+struct err_state shellfront_catch_io_from_arg(int argc, char **argv);
 // you decide how the application is presented to the user
-void shellfront_catch_io(int argc, char **argv, struct term_conf config);
+struct err_state shellfront_catch_io(int argc, char **argv, struct term_conf config);
 
 #ifdef __cplusplus
 }

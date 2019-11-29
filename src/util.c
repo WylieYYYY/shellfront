@@ -1,7 +1,16 @@
+#include "shellfront.h"
+
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+struct err_state define_error(char *msg) {
+	struct err_state err;
+	err.has_error = 1;
+	strcpy(err.errmsg, msg);
+	return err;
+}
 
 int parse_size_str(char *size, long *x, long *y, char *delim) {
 	char *cp = strdup(size);

@@ -1,3 +1,6 @@
+#include "internal.h"
+#include "shellfront.h"
+
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
@@ -8,6 +11,10 @@ unsigned long hash(char *str);
 char *sxprintf(char *fmt, ...);
 
 int main(int argc, char **argv) {
+	struct err_state state = define_error("Error occured");
+	assert(state.has_error != 0);
+	assert(strcmp(state.errmsg, "Error occured") == 0);
+
 	long lx, ly;
 	assert(parse_size_str("0x0", &lx, &ly, "x") == 0);
 	assert(parse_size_str("0x1", &lx, &ly, "x") == 0);
