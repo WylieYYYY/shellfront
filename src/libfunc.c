@@ -7,6 +7,15 @@
 #include <string.h>
 #include <unistd.h>
 
+static struct err_state shellfront_start_process(char *prog_name, struct term_conf config, char *current_tty) {
+	char *invoke_cmd = sxprintf("%s --no-shellfront 2>%s", prog_name, current_tty);
+	config.cmd = invoke_cmd;
+	struct err_state state = shellfront_initialize(config);
+	free(invoke_cmd);
+	if (!state.has_error) strcpy(state.errmsg, "Original process, please end");
+	return state;
+}
+
 struct err_state shellfront_interpret(int argc, char **argv) {
 	struct term_conf config;
 	struct err_state state = shellfront_parse(argc, argv, &config);
@@ -28,14 +37,10 @@ struct err_state shellfront_catch_io_from_arg(int argc, char **argv) {
 		struct term_conf config;
 		struct err_state state = shellfront_parse(argc, argv, &config);
 		if (state.has_error) return state;
-		// if the program is reinitialized in shellfront, it should not initialize shellfront again in new instance
-		// redirect error to the old terminal
-		char *invoke_cmd = sxprintf("%s --no-shellfront 2>%s", argv[0], ttyname(STDIN_FILENO));
-		config.cmd = invoke_cmd;
-		state = shellfront_initialize(config);
-		free(invoke_cmd);
-		return state;
+		return shellfront_start_process(argv[0], config, ttyname(STDIN_FILENO));
 	}
+
+	return ((struct err_state) {});
 }
 struct err_state shellfront_catch_io(int argc, char **argv, struct term_conf config) {
 	int use_shellfront = true;
@@ -49,11 +54,8 @@ struct err_state shellfront_catch_io(int argc, char **argv, struct term_conf con
 		if (config.grav == 0) config.grav = 1;
 		if (config.width == 0) config.width = 80;
 		if (config.height == 0) config.height = 24;
-
-		char *invoke_cmd = sxprintf("%s --no-shellfront 2>%s", argv[0], ttyname(STDIN_FILENO));
-		config.cmd = invoke_cmd;
-		struct err_state state = shellfront_initialize(config);
-		free(invoke_cmd);
-		return state;
+		return shellfront_start_process(argv[0], config, ttyname(STDIN_FILENO));
 	}
+
+	return ((struct err_state) {});
 }

@@ -26,4 +26,4 @@ test:
         - ./configure --enable-unit-tests
         - make
         - src/test
-        - gcovr -e src/t_*.c -r src --branches
+        - gcovr -e 'src/t_*' -r src --branches
