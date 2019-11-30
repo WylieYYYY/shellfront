@@ -61,7 +61,7 @@ struct err_state shellfront_catch_io(int argc, char **argv, struct term_conf con
 		if (strcmp(argv[i], "--no-shellfront") == 0) use_shellfront = false;
 	}
 	// this time argv is ignored except the "--no-shellfront" flag, so if there is "-c" in argv, it doesn't matter
-	if (config.cmd != NULL) return define_error("This application is intended to run without -c switch");
+	if (config.cmd != NULL) return define_error("ShellFront integration does not require cmd");
 	if (use_shellfront) {
 		// initialize with default values if not defined in the struct
 		if (config.grav == 0) config.grav = 1;
