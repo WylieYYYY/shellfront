@@ -12,6 +12,10 @@
 	#define shellfront_initialize(x) mock_initialize(x)
 	struct err_state mock_parse(int argc, char **argv, struct term_conf *config);
 	#define shellfront_parse(x,y,z) mock_parse(x,y,z)
+	struct err_state mock_start_process(char *prog_name, struct term_conf config, char *current_tty);
+	#define SHELLFRONT_START_PROCESS(x,y,z) mock_start_process(x,y,z)
+#else
+	#define SHELLFRONT_START_PROCESS(x,y,z) shellfront_start_process(x,y,z)
 #endif
 
 struct err_state shellfront_start_process(char *prog_name, struct term_conf config, char *current_tty) {
@@ -46,7 +50,7 @@ struct err_state shellfront_catch_io_from_arg(int argc, char **argv) {
 		// parse error
 		if (state.has_error) return state;
 		// return the state of the process
-		return shellfront_start_process(argv[0], config, ttyname(STDIN_FILENO));
+		return SHELLFRONT_START_PROCESS(argv[0], config, ttyname(STDIN_FILENO));
 	}
 	// this is running in ShellFront, return no error
 	return ((struct err_state) {});
@@ -64,7 +68,7 @@ struct err_state shellfront_catch_io(int argc, char **argv, struct term_conf con
 		if (config.width == 0) config.width = 80;
 		if (config.height == 0) config.height = 24;
 		// return the state of the process
-		return shellfront_start_process(argv[0], config, ttyname(STDIN_FILENO));
+		return SHELLFRONT_START_PROCESS(argv[0], config, ttyname(STDIN_FILENO));
 	}
 	// this is running in ShellFront, return no error
 	return ((struct err_state) {});
