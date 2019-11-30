@@ -34,6 +34,8 @@ struct term_conf {
 	// kill single instance application
 	int killopt;
 };
+// constant struct with default member values
+const struct term_conf term_conf_default;
 // passing arguments and use shellfront just like invoking in terminal
 struct err_state shellfront_interpret(int argc, char **argv);
 // let user to choose how the application is displayed

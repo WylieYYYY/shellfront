@@ -18,6 +18,20 @@
 	#define SHELLFRONT_START_PROCESS(x,y,z) shellfront_start_process(x,y,z)
 #endif
 
+const struct term_conf term_conf_default = {
+	.grav = 1,
+	.x = 0,
+	.y = 0,
+	.width = 80,
+	.height = 24,
+	.title = "",
+	.interactive = 0,
+	.ispopup = 0,
+	.once = 0,
+	.toggle = 0,
+	.killopt = 0
+};
+
 struct err_state shellfront_start_process(char *prog_name, struct term_conf config, char *current_tty) {
 	char *invoke_cmd = sxprintf("%s --no-shellfront 2>%s", prog_name, current_tty);
 	config.cmd = invoke_cmd;
@@ -53,7 +67,7 @@ struct err_state shellfront_catch_io_from_arg(int argc, char **argv) {
 		return SHELLFRONT_START_PROCESS(argv[0], config, ttyname(STDIN_FILENO));
 	}
 	// this is running in ShellFront, return no error
-	return ((struct err_state) {});
+	return ((struct err_state) { .has_error = 0, .errmsg = "" });
 }
 struct err_state shellfront_catch_io(int argc, char **argv, struct term_conf config) {
 	int use_shellfront = true;
@@ -63,13 +77,9 @@ struct err_state shellfront_catch_io(int argc, char **argv, struct term_conf con
 	// this time argv is ignored except the "--no-shellfront" flag, so if there is "-c" in argv, it doesn't matter
 	if (config.cmd != NULL) return define_error("ShellFront integration does not require cmd");
 	if (use_shellfront) {
-		// initialize with default values if not defined in the struct
-		if (config.grav == 0) config.grav = 1;
-		if (config.width == 0) config.width = 80;
-		if (config.height == 0) config.height = 24;
 		// return the state of the process
 		return SHELLFRONT_START_PROCESS(argv[0], config, ttyname(STDIN_FILENO));
 	}
 	// this is running in ShellFront, return no error
-	return ((struct err_state) {});
+	return ((struct err_state) { .has_error = 0, .errmsg = "" });
 }

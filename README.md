@@ -77,19 +77,19 @@ int main(int argc, char **argv) {
 }
 ```
 
-The `err_state` struct has default values for all variable, listed below:
+The `err_state` struct has following members, listed below: (For default values, use `{ .has_error = 0, .errmsg = "" }`)
 ```
-- has_error               : FALSE or 0
-- errmsg for error message: ""
+- has_error
+- errmsg for error message
 ```
-The `term_conf` struct has default values for all variable, listed below:
+The `term_conf` struct defines `term_conf_default` constant, which has default values for all members, listed below:
 ```
 Window and terminal properties
 - grav for gravity        : 1 (Top-left)
 - x and y for coordinate  : 0
 - width                   : 80
 - height                  : 24
-- title                   : "" (In terminal) or executable filename (In C library)
+- title                   : ""
 - cmd for target command  : "echo -n  Hello World!; sleep infinity" (In terminal) or "" (In C library)
 - interactive for input   : FALSE or 0
 - ispopup                 : FALSE or 0

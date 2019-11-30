@@ -19,8 +19,7 @@ void sig_exit(int signo) {
 
 struct err_state shellfront_parse(int argc, char **argv, struct term_conf *config) {
 	// default configurations
-	config->grav = 1;
-	config->title = "";
+	*config = term_conf_default;
 	config->cmd = "echo -n Hello World!; sleep infinity";
 	char *loc = "0,0";
 	char *size = "80x24";
@@ -119,7 +118,7 @@ struct err_state shellfront_parse(int argc, char **argv, struct term_conf *confi
 	// implied flag
 	config->once |= (config->ispopup || config->toggle);
 	
-	return ((struct err_state) {});
+	return ((struct err_state) { .has_error = 0, .errmsg = "" });
 }
 struct err_state shellfront_initialize(struct term_conf config) {
 	// get lock file name
@@ -185,7 +184,7 @@ struct err_state shellfront_initialize(struct term_conf config) {
 	free(appid);
 	// link terminal setup function
 	g_signal_connect(app, "activate", G_CALLBACK(gtk_activate), &config);
-	struct err_state state;
+	struct err_state state = { .has_error = 0, .errmsg = "" };
 	state.has_error = g_application_run(G_APPLICATION(app), 0, NULL);
 	if (state.has_error) strcpy(state.errmsg, "GTK error");
 	g_object_unref(app);

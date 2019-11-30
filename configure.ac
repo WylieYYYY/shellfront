@@ -8,9 +8,9 @@ LT_INIT
 PKG_CHECK_MODULES([GTK], [gtk+-3.0 >= 3.10])
 PKG_CHECK_MODULES([VTE], [vte-2.91 >= 0.43])
 
-AC_MSG_CHECKING([whether to run unit tests])
+AC_MSG_CHECKING([whether to build unit tests])
 AC_ARG_ENABLE([unit-tests],
-	[AS_HELP_STRING([--enable-unit-tests], [run unit tests])],
+	[AS_HELP_STRING([--enable-unit-tests], [build unit tests])],
 	[enable_unit_tests="yes"], [enable_unit_tests="no"])
 AC_MSG_RESULT([$enable_unit_tests])
 AM_CONDITIONAL([UNIT_TEST], [test "X$enable_unit_tests" = "Xyes"])

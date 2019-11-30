@@ -17,7 +17,7 @@ struct err_state mock_initialize(struct term_conf config) {
 	// write the command detail for error message
 	if (process_test_state) return define_error(config.cmd);
 	// else return a blank err_state
-	return ((struct err_state) {});
+	return ((struct err_state) { .has_error = 0, .errmsg = "" });
 }
 static bool parse_test_state = true;
 struct err_state mock_parse(int argc, char **argv, struct term_conf *config) {
@@ -25,7 +25,7 @@ struct err_state mock_parse(int argc, char **argv, struct term_conf *config) {
 	if (parse_test_state) return define_error("Parse error");
 	// put command in for mock_initialize
 	config->cmd = "Parsed command";
-	return ((struct err_state) {});
+	return ((struct err_state) { .has_error = 0, .errmsg = "" });
 }
 struct err_state mock_start_process(char *prog_name, struct term_conf config, char *current_tty) {
 	process_test_state ^= true;
@@ -48,7 +48,7 @@ static void check_config(char *list, int grav, long width, long height) {
 void test_libfunc() {
 	// struct err_state shellfront_start_process(char *prog_name, struct term_conf config, char *current_tty)
 	// test state[1, 0] (Initialize error)
-	struct term_conf config;
+	struct term_conf config = term_conf_default;
 	struct err_state state = shellfront_start_process("procname", config, "ttyname");
 	assert(state.has_error != 0);
 	assert(strcmp(state.errmsg, "procname --no-shellfront 2>ttyname") == 0);
@@ -86,7 +86,7 @@ void test_libfunc() {
 	assert(state.has_error != 0);
 	assert(strcmp(state.errmsg, "Parse error") == 0);
 	// struct err_state shellfront_catch_io(int argc, char **argv, struct term_conf config)
-	// test state[0, 0] (No error, default setting)
+	// test state[0, 0] (No error)
 	config.cmd = NULL;
 	state = shellfront_catch_io(4, argv, config);
 	assert(state.has_error == 0);
@@ -101,13 +101,4 @@ void test_libfunc() {
 	argv[2] = "--no-shellfront";
 	state = shellfront_catch_io(4, argv, config);
 	assert(state.has_error == 0);
-	// test state[0, 0] (No error, custom setting)
-	process_test_state = true;
-	argv[2] = "-T";
-	config.grav = 3;
-	config.width = 40;
-	config.height = 12;
-	state = shellfront_catch_io(4, argv, config);
-	assert(state.has_error == 0);
-	check_config(state.errmsg, 3, 40, 12);
 }
