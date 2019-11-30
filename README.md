@@ -89,7 +89,7 @@ Window and terminal properties
 - x and y for coordinate  : 0
 - width                   : 80
 - height                  : 24
-- title                   : ""
+- title                   : "" (In terminal) or executable filename (In C library)
 - cmd for target command  : "echo -n  Hello World!; sleep infinity" (In terminal) or "" (In C library)
 - interactive for input   : FALSE or 0
 - ispopup                 : FALSE or 0

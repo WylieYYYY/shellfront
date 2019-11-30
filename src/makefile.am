@@ -13,7 +13,7 @@ libshellfront_la_LDFLAGS = $(GTK_LIBS) $(VTE_LIBS)
 
 if UNIT_TEST
 bin_PROGRAMS = test
-test_SOURCES = t_util.c t_main.c
+test_SOURCES = t_util.c t_libfunc.c t_main.c
 test_CFLAGS = $(GTK_CFLAGS) $(VTE_CFLAGS) $(GCOVR_CFLAGS)
 test_LDADD = $(GTK_LIBS) $(VTE_LIBS) libshellfront.la
 else
