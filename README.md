@@ -64,9 +64,9 @@ Sample program in C:
 #include <unistd.h>
 
 int main(int argc, char **argv) {
-	struct term_conf config = {
-		.width = 20
-	};
+	struct term_conf config = term_conf_default;
+	config.width = 20;
+	config.height = 6;
 	struct err_state state = shellfront_catch_io(argc, argv, config);
 	if (state.has_error) fprintf(stderr, state.errmsg);
 	else if (strcmp(state.errmsg, "") != 0) return 0;

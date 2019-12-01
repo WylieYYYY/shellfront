@@ -58,7 +58,7 @@ void test_libfunc() {
 	assert(strcmp(state.errmsg, "Original process, please end") == 0);
 	// struct err_state shellfront_interpret(int argc, char **argv)
 	// test state[1, 0] (Initialize error)
-	char **argv = (char *[]){ "shellfront", "-c", "--no-shellfront", "echo hi" };
+	char **argv = (char *[]){ "shellfront", "-c", "--no-shellfront" };
 	state = shellfront_interpret(4, argv);
 	assert(state.has_error != 0);
 	assert(strcmp(state.errmsg, "Parsed command") == 0);

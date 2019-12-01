@@ -14,7 +14,7 @@ void sig_exit(int signo) {
 	// remove lock file and free the ID
 	remove(tmpid);
 	free(tmpid);
-	exit(0);
+	return;
 }
 
 struct err_state shellfront_parse(int argc, char **argv, struct term_conf *config) {
@@ -97,11 +97,8 @@ struct err_state shellfront_parse(int argc, char **argv, struct term_conf *confi
 	struct err_state err;
 	
 	GError *error = NULL;
-	// description and error report
-	if (!gtk_init_with_args(&argc, &argv,
-		"- simple frontend for shell scripts", options, NULL, &error)) {
-		return define_error(error->message);
-	}
+	// description and register arguments
+	gtk_init_with_args(&argc, &argv, "- simple frontend for shell scripts", options, NULL, &error);
 	// options validation
 	if (!parse_loc_str(loc, &(config->x), &(config->y), ",")) {
 		return define_error("Incorrect location format, should be X,Y");
