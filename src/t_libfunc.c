@@ -6,7 +6,6 @@
 #include <string.h>
 
 struct err_state define_error(char *msg);
-char *sxprintf(char *fmt, ...);
 struct err_state shellfront_start_process(char *prog_name, struct term_conf config, char *current_tty);
 struct err_state shellfront_interpret(int argc, char **argv);
 
@@ -30,19 +29,8 @@ struct err_state mock_parse(int argc, char **argv, struct term_conf *config) {
 struct err_state mock_start_process(char *prog_name, struct term_conf config, char *current_tty) {
 	process_test_state ^= true;
 	if (process_test_state) return define_error("Start process error");
-	// return grav, width and height for testing default setting
-	char *setting = sxprintf("%u,%ld,%ld", config.grav, config.width, config.height);
-	struct err_state state;
-	strcpy(state.errmsg, setting);
-	free(setting);
-	return state;
-}
-
-static void check_config(char *list, int grav, long width, long height) {
-	char *cp = strdup(list);
-	assert(grav == atoi(strsep(&cp, ",")));
-	assert(width == atol(strsep(&cp, ",")));
-	assert(height == atol(cp));
+	// return message to indicate it is outside ShellFront
+	return ((struct err_state) { .has_error = 0, .errmsg = "Original process, please end" });
 }
 
 void test_libfunc() {
@@ -75,6 +63,7 @@ void test_libfunc() {
 	argv[1] = "-p";
 	state = shellfront_catch_io_from_arg(3, argv);
 	assert(state.has_error == 0);
+	assert(strcmp(state.errmsg, "") == 0);
 	// test state[1, 0] (Start process error)
 	process_test_state = 0;
 	argv[2] = "-T";
@@ -90,7 +79,7 @@ void test_libfunc() {
 	config.cmd = NULL;
 	state = shellfront_catch_io(3, argv, config);
 	assert(state.has_error == 0);
-	check_config(state.errmsg, 1, 80, 24);
+	assert(strcmp(state.errmsg, "Original process, please end") == 0);
 	// test state[1, 0] (-c error)
 	config.cmd = "echo hi";
 	state = shellfront_catch_io(3, argv, config);
@@ -101,4 +90,5 @@ void test_libfunc() {
 	argv[2] = "--no-shellfront";
 	state = shellfront_catch_io(3, argv, config);
 	assert(state.has_error == 0);
+	assert(strcmp(state.errmsg, "") == 0);
 }
