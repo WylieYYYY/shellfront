@@ -12,18 +12,30 @@ struct err_state define_error(char *msg) {
 	return err;
 }
 
-int parse_size_str(char *size, long *x, long *y, char *delim) {
+int parse_size_str(char *size, long *x, long *y) {
 	char *cp = strdup(size);
-	*x = atol(strsep(&cp, delim));
-	*y = atol(cp);
+	char *x_str = strsep(&cp, "x");
+	// no delimiter, pointer moved to the end
+	if (cp == NULL) return 0;
+	// if entire string is a number, pointer moved to the end
+	char *strtol_end;
+	*x = strtol(x_str, &strtol_end, 10);
+	if (*strtol_end != '\0') return 0;
+	*y = strtol(cp, &strtol_end, 10);
+	if (*strtol_end != '\0') return 0;
 	// size cannot be 0x0 or less
-	return !(*x < 1 || *y < 1);
+	return *x > 0 && *y > 0;
 }
-int parse_loc_str(char *size, int *x, int *y, char *delim) {
-	char *cp = strdup(size);
-	*x = atoi(strsep(&cp, delim));
-	*y = atoi(cp);
-	// location must be positive
+int parse_loc_str(char *loc, int *x, int *y) {
+	char *cp = strdup(loc);
+	char *x_str = strsep(&cp, ",");
+	if (cp == NULL) return 0;
+	char *strtol_end;
+	*x = strtol(x_str, &strtol_end, 10);
+	if (*strtol_end != '\0') return 0;
+	*y = strtol(cp, &strtol_end, 10);
+	if (*strtol_end != '\0') return 0;
+	// location cannot be negative
 	return !(*x < 0 || *y < 0);
 }
 unsigned long hash(char *str) {

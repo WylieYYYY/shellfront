@@ -91,7 +91,7 @@ struct err_state shellfront_parse(int argc, char **argv, struct term_conf *confi
 			.arg = G_OPTION_ARG_NONE,
 			.arg_data = &(config->killopt),
 			.description = "Kill a single instance application according to command"
-		}, {}
+		}, { 0 }
 	};
 
 	struct err_state err;
@@ -100,10 +100,10 @@ struct err_state shellfront_parse(int argc, char **argv, struct term_conf *confi
 	// description and register arguments
 	gtk_init_with_args(&argc, &argv, "- simple frontend for shell scripts", options, NULL, &error);
 	// options validation
-	if (!parse_loc_str(loc, &(config->x), &(config->y), ",")) {
+	if (!parse_loc_str(loc, &(config->x), &(config->y))) {
 		return define_error("Incorrect location format, should be X,Y");
 	}
-	if (!parse_size_str(size, &(config->width), &(config->height), "x")) {
+	if (!parse_size_str(size, &(config->width), &(config->height))) {
 		return define_error("Incorrect size format, should be XxY");
 	}
 	if (config->grav < 1 || config->grav > 9) {
