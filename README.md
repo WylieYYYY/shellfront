@@ -68,7 +68,10 @@ int main(int argc, char **argv) {
 	config.width = 20;
 	config.height = 6;
 	struct err_state state = shellfront_catch_io(argc, argv, config);
-	if (state.has_error) fprintf(stderr, state.errmsg);
+	if (state.has_error) {
+		fprintf(stderr, state.errmsg);
+		return state.has_error;
+	}
 	else if (strcmp(state.errmsg, "") != 0) return 0;
 	printf("Hi\n");
 	fprintf(stderr, "Errors");
