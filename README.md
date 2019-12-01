@@ -1,7 +1,8 @@
 # ShellFront
 [![pipeline status](https://gitlab.com/WylieYYYY/shellfront/badges/master/pipeline.svg)](https://gitlab.com/WylieYYYY/shellfront/commits/master)
 [![coverage report](https://gitlab.com/WylieYYYY/shellfront/badges/master/coverage.svg)](https://gitlab.com/WylieYYYY/shellfront/commits/master)  
-ShellFront is a simple frontend for linux shell scripts (Shellfront is pronounce as "shelf-front" as in the icon).
+ShellFront is a simple frontend for terminal applications and linux shell scripts. Making terminal application window to be customizable by user
+or developer.
 #### Screenshot
 Alsamixer started from right-clicking the clock in tint2.  
 ![Example Screenshot](screenshot.png "shellfront -Tips 30x14 -g 3 -l 0,0 -c 'alsamixer'")
@@ -10,10 +11,12 @@ Alsamixer started from right-clicking the clock in tint2.
 - Customise command to toggle, activate, or deactivate;
 - Uses GTK3 and VTE, portable between linux computers;
 - Integrate to other applications as C library;
+- Simple and intuitive, one struct for configuration and can be added in under 10 lines of code;
 
 ### Setup
 1. Download the compressed package from [here](https://gitlab.com/WylieYYYY/shellfront/-/jobs/artifacts/master/download?job=build-pkg) 
-   and extract to a directory with a name without whitespaces. Then, install the following packages.
+   and extract to a directory with a name without whitespaces. If the `pipeline` indicator shows `running`, please wait for it to complete, 
+   a new build is coming out. Then, install the following packages.
 2. Install the following packages:  
    For ArchLinux: `gtk3 vte3`  
    For Ubuntu: `libgtk-3-dev libvte-2.91-dev`  
@@ -55,7 +58,7 @@ Both functions above return an `err_state`, the setup on the program should hand
    - If `errmsg` is `""`, this is currently running in ShellFront, continue the execution of the program.
    - If `errmsg` is not `""`, this is currently in the original process, end the program without executing the main logic.
 
-Sample program in C:
+Sample implementation in C:
 ```
 #include "shellfront.h"
 
