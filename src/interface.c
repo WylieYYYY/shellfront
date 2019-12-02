@@ -14,7 +14,7 @@ void sig_exit(int signo) {
 	// remove lock file and free the ID
 	remove(tmpid);
 	free(tmpid);
-	return;
+	exit(0);
 }
 
 struct err_state shellfront_parse(int argc, char **argv, struct term_conf *config) {
