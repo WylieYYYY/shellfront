@@ -10,7 +10,7 @@ struct err_state {
 	// flag for when error occured
 	int has_error;
 	// human readable error message
-	char errmsg[60];
+	char errmsg[100];
 };
 // configuration structure
 struct term_conf {
