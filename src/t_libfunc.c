@@ -38,57 +38,57 @@ void test_libfunc() {
 	// test state[1, 0] (Initialize error)
 	struct term_conf config = term_conf_default;
 	struct err_state state = shellfront_start_process("procname", config, "ttyname");
-	assert(state.has_error != 0);
+	assert(state.has_error);
 	assert(strcmp(state.errmsg, "procname --no-shellfront 2>ttyname") == 0);
 	// test state[0, 0] (No error)
 	state = shellfront_start_process("procname", config, "ttyname");
-	assert(state.has_error == 0);
+	assert(!state.has_error);
 	assert(strcmp(state.errmsg, "Original process, please end") == 0);
 	// struct err_state shellfront_interpret(int argc, char **argv)
 	// test state[1, 0] (Initialize error)
 	char **argv = (char *[]){ "shellfront", "-c", "--no-shellfront" };
 	state = shellfront_interpret(3, argv);
-	assert(state.has_error != 0);
+	assert(state.has_error);
 	assert(strcmp(state.errmsg, "Parsed command") == 0);
 	// test state[0, 1] (Parse error)
 	state = shellfront_interpret(3, argv);
-	assert(state.has_error != 0);
+	assert(state.has_error);
 	assert(strcmp(state.errmsg, "Parse error") == 0);
 	// struct err_state shellfront_catch_io_from_arg(int argc, char **argv)
 	// test state[0, 0] (-c error)
 	state = shellfront_catch_io_from_arg(3, argv);
-	assert(state.has_error != 0);
+	assert(state.has_error);
 	assert(strcmp(state.errmsg, "This application is intended to run without -c switch") == 0);
 	// test state[0, 0] (No error, in ShellFront)
 	argv[1] = "-p";
 	state = shellfront_catch_io_from_arg(3, argv);
-	assert(state.has_error == 0);
+	assert(!state.has_error);
 	assert(strcmp(state.errmsg, "") == 0);
 	// test state[1, 0] (Start process error)
 	process_test_state = 0;
 	argv[2] = "-T";
 	state = shellfront_catch_io_from_arg(3, argv);
-	assert(state.has_error != 0);
+	assert(state.has_error);
 	assert(strcmp(state.errmsg, "Start process error") == 0);
 	// test state[0, 1] (Parse error)
 	state = shellfront_catch_io_from_arg(3, argv);
-	assert(state.has_error != 0);
+	assert(state.has_error);
 	assert(strcmp(state.errmsg, "Parse error") == 0);
 	// struct err_state shellfront_catch_io(int argc, char **argv, struct term_conf config)
 	// test state[0, 0] (No error)
 	config.cmd = NULL;
 	state = shellfront_catch_io(3, argv, config);
-	assert(state.has_error == 0);
+	assert(!state.has_error);
 	assert(strcmp(state.errmsg, "Original process, please end") == 0);
 	// test state[1, 0] (-c error)
 	config.cmd = "echo hi";
 	state = shellfront_catch_io(3, argv, config);
-	assert(state.has_error != 0);
+	assert(state.has_error);
 	assert(strcmp(state.errmsg, "ShellFront integration does not require cmd") == 0);
 	// test state[1, 0] (No error, in ShellFront)
 	config.cmd = NULL;
 	argv[2] = "--no-shellfront";
 	state = shellfront_catch_io(3, argv, config);
-	assert(state.has_error == 0);
+	assert(!state.has_error);
 	assert(strcmp(state.errmsg, "") == 0);
 }

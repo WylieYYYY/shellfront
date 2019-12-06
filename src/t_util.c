@@ -8,26 +8,26 @@
 void test_util() {
 	// struct err_state define_error(char *msg)
 	struct err_state state = define_error("Error occured");
-	assert(state.has_error != 0);
+	assert(state.has_error);
 	assert(strcmp(state.errmsg, "Error occured") == 0);
 	// int parse_size_str(char *size, long *x, long *y, char *delim)
 	long lx, ly;
-	assert(parse_size_str("0x0", &lx, &ly) == 0);
-	assert(parse_size_str("0x1", &lx, &ly) == 0);
-	assert(parse_size_str("1x0", &lx, &ly) == 0);
-	assert(parse_size_str("11", &lx, &ly) == 0);
-	assert(parse_size_str("1xx1", &lx, &ly) == 0);
-	assert(parse_size_str("1yx1", &lx, &ly) == 0);
-	assert(parse_size_str("1x1", &lx, &ly) != 0);
+	assert(!parse_size_str("0x0", &lx, &ly));
+	assert(!parse_size_str("0x1", &lx, &ly));
+	assert(!parse_size_str("1x0", &lx, &ly));
+	assert(!parse_size_str("11", &lx, &ly));
+	assert(!parse_size_str("1xx1", &lx, &ly));
+	assert(!parse_size_str("1yx1", &lx, &ly));
+	assert(parse_size_str("1x1", &lx, &ly));
 	// int parse_loc_str(char *size, int *x, int *y, char *delim)
 	int ix, iy;
-	assert(parse_loc_str("-1,-1", &ix, &iy) == 0);
-	assert(parse_loc_str("-1,0", &ix, &iy) == 0);
-	assert(parse_loc_str("0,-1", &ix, &iy) == 0);
-	assert(parse_loc_str("00", &ix, &iy) == 0);
-	assert(parse_loc_str("0,,0", &ix, &iy) == 0);
-	assert(parse_loc_str("0`,0", &ix, &iy) == 0);
-	assert(parse_loc_str("0,0", &ix, &iy) != 0);
+	assert(!parse_loc_str("-1,-1", &ix, &iy));
+	assert(!parse_loc_str("-1,0", &ix, &iy));
+	assert(!parse_loc_str("0,-1", &ix, &iy));
+	assert(!parse_loc_str("00", &ix, &iy));
+	assert(!parse_loc_str("0,,0", &ix, &iy));
+	assert(!parse_loc_str("0`,0", &ix, &iy));
+	assert(parse_loc_str("0,0", &ix, &iy));
 	// unsigned long hash(char *str)
 	assert(hash("hi") == 5863446);
 	// char *sxprintf(char *fmt, ...)

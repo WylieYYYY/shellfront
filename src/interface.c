@@ -17,12 +17,31 @@ void sig_exit(int signo) {
 	exit(0);
 }
 
+struct err_state validate_opt(char *locstr, char *sizestr, struct term_conf *config) {
+	if (!parse_loc_str(locstr, &(config->x), &(config->y))) {
+		return define_error("Incorrect location format, should be X,Y");
+	}
+	if (!parse_size_str(sizestr, &(config->width), &(config->height))) {
+		return define_error("Incorrect size format, should be XxY");
+	}
+	if (config->grav < 1 || config->grav > 9) {
+		return define_error("Incorrect gravity range, see README for usage");
+	}
+	if ((config->toggle && config->killopt) || (strcmp(config->title, "") && config->ispopup)) {
+		return define_error("Conflicting arguments, see README for usage");
+	}
+	// implied flag
+	config->once |= (config->ispopup || config->toggle);
+	
+	return ((struct err_state) { .has_error = 0, .errmsg = "" });
+}
+
 struct err_state shellfront_parse(int argc, char **argv, struct term_conf *config) {
 	// default configurations
 	*config = term_conf_default;
 	config->cmd = "echo -n Hello World!; sleep infinity";
-	char *loc = "0,0";
-	char *size = "80x24";
+	char *locstr = "0,0";
+	char *sizestr = "80x24";
 	
 	// options and help messages
 	GOptionEntry options[] = {
@@ -43,14 +62,14 @@ struct err_state shellfront_parse(int argc, char **argv, struct term_conf *confi
 			.long_name = "loc",
 			.short_name = 'l',
 			.arg = G_OPTION_ARG_STRING,
-			.arg_data = &loc,
+			.arg_data = &locstr,
 			.arg_description = "X,Y",
 			.description = "Set the default screen location"
 		}, {
 			.long_name = "size",
 			.short_name = 's',
 			.arg = G_OPTION_ARG_STRING,
-			.arg_data = &size,
+			.arg_data = &sizestr,
 			.arg_description = "XxY",
 			.description = "Set the size"
 		}, {
@@ -99,24 +118,10 @@ struct err_state shellfront_parse(int argc, char **argv, struct term_conf *confi
 	GError *error = NULL;
 	// description and register arguments
 	gtk_init_with_args(&argc, &argv, "- simple frontend for shell scripts", options, NULL, &error);
-	// options validation
-	if (!parse_loc_str(loc, &(config->x), &(config->y))) {
-		return define_error("Incorrect location format, should be X,Y");
-	}
-	if (!parse_size_str(size, &(config->width), &(config->height))) {
-		return define_error("Incorrect size format, should be XxY");
-	}
-	if (config->grav < 1 || config->grav > 9) {
-		return define_error("Incorrect gravity range, see README for usage");
-	}
-	if ((config->toggle && config->killopt) || (strcmp(config->title, "") && config->ispopup)) {
-		return define_error("Conflicting arguments, see README for usage");
-	}
-	// implied flag
-	config->once |= (config->ispopup || config->toggle);
 	
-	return ((struct err_state) { .has_error = 0, .errmsg = "" });
+	return validate_opt(locstr, sizestr, config);
 }
+
 struct err_state shellfront_initialize(struct term_conf config) {
 	// get lock file name
 	tmpid = sxprintf("/tmp/shellfront.%lu.lock", hash(config.cmd));
