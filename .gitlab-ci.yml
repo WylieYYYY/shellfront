@@ -5,14 +5,16 @@ stages:
     - make
     - test
 
+default:
+    before_script:
+        - Xvfb :1 -screen 0 1600x1200x24 &
+        - export DISPLAY=:1
+
 build-pkg:
     stage: build
     script:
         - rm -rf .git
         - autoreconf -i
-    after_script:
-        - Xvfb :1 -screen 0 1600x1200x24 &
-        - export DISPLAY=:1
     artifacts:
         paths:
             - "*"
