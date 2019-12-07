@@ -19,6 +19,8 @@ void test_util() {
 	assert(!parse_size_str("1xx1", &lx, &ly));
 	assert(!parse_size_str("1yx1", &lx, &ly));
 	assert(parse_size_str("1x1", &lx, &ly));
+	assert(parse_size_str("1x2", &lx, &ly));
+	assert(lx == 1 && ly == 2);
 	// int parse_loc_str(char *size, int *x, int *y, char *delim)
 	int ix, iy;
 	assert(!parse_loc_str("-1,-1", &ix, &iy));
@@ -28,6 +30,8 @@ void test_util() {
 	assert(!parse_loc_str("0,,0", &ix, &iy));
 	assert(!parse_loc_str("0`,0", &ix, &iy));
 	assert(parse_loc_str("0,0", &ix, &iy));
+	assert(parse_loc_str("3,4", &ix, &iy));
+	assert(ix == 3 && iy == 4);
 	// unsigned long hash(char *str)
 	assert(hash("hi") == 5863446);
 	// char *sxprintf(char *fmt, ...)

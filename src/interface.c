@@ -17,7 +17,7 @@ void sig_exit(int signo) {
 	exit(0);
 }
 
-struct err_state validate_opt(char *locstr, char *sizestr, struct term_conf *config) {
+struct err_state validate_opt(char *locstr, char *sizestr, struct term_conf *config, GError *gtkerr) {
 	if (!parse_loc_str(locstr, &(config->x), &(config->y))) {
 		return define_error("Incorrect location format, should be X,Y");
 	}
@@ -32,14 +32,17 @@ struct err_state validate_opt(char *locstr, char *sizestr, struct term_conf *con
 	}
 	// implied flag
 	config->once |= (config->ispopup || config->toggle);
-	
-	return ((struct err_state) { .has_error = 0, .errmsg = "" });
+	// return propagated GTK error if there is any
+	if (gtkerr == NULL) return ((struct err_state) { .has_error = 0, .errmsg = "" });
+	struct err_state state = { .has_error = gtkerr->code };
+	strcpy(state.errmsg, gtkerr->message);
+	return state;
 }
 
 struct err_state shellfront_parse(int argc, char **argv, struct term_conf *config) {
 	// default configurations
 	*config = term_conf_default;
-	config->cmd = "echo -n Hello World!; sleep infinity";
+	config->cmd = "echo 'Hello World!'; echo 'Press Enter To Exit...'; read";
 	char *locstr = "0,0";
 	char *sizestr = "80x24";
 	
@@ -52,7 +55,7 @@ struct err_state shellfront_parse(int argc, char **argv, struct term_conf *confi
 			.arg_data = &(config->once),
 			.description = "Set if only one instance is allowed"
 		}, {
-			.long_name = "gravity",
+			.long_name = "grav",
 			.short_name = 'g',
 			.arg = G_OPTION_ARG_INT,
 			.arg_data = &(config->grav),
@@ -80,7 +83,7 @@ struct err_state shellfront_parse(int argc, char **argv, struct term_conf *confi
 			.arg_description = "TITLE",
 			.description = "Set the title for application window"
 		}, {
-			.long_name = "command",
+			.long_name = "cmd",
 			.short_name = 'c',
 			.arg = G_OPTION_ARG_STRING,
 			.arg_data = &(config->cmd),
@@ -93,7 +96,7 @@ struct err_state shellfront_parse(int argc, char **argv, struct term_conf *confi
 			.arg_data = &(config->interactive),
 			.description = "Application can be interacted with mouse and auto focuses"
 		}, {
-			.long_name = "popup",
+			.long_name = "ispopup",
 			.short_name = 'p',
 			.arg = G_OPTION_ARG_NONE,
 			.arg_data = &(config->ispopup),
@@ -105,7 +108,7 @@ struct err_state shellfront_parse(int argc, char **argv, struct term_conf *confi
 			.arg_data = &(config->toggle),
 			.description = "Toggle single instance application, implies -1"
 		}, {
-			.long_name = "kill",
+			.long_name = "killopt",
 			.short_name = 'k',
 			.arg = G_OPTION_ARG_NONE,
 			.arg_data = &(config->killopt),
@@ -113,13 +116,13 @@ struct err_state shellfront_parse(int argc, char **argv, struct term_conf *confi
 		}, { 0 }
 	};
 
-	struct err_state err;
-	
-	GError *error = NULL;
+	GError *gtkerr = NULL;
 	// description and register arguments
-	gtk_init_with_args(&argc, &argv, "- simple frontend for shell scripts", options, NULL, &error);
-	
-	return validate_opt(locstr, sizestr, config);
+	gtk_init_with_args(&argc, &argv, "- simple frontend for shell scripts", options, NULL, &gtkerr);
+	struct err_state state = validate_opt(locstr, sizestr, config, gtkerr);
+	g_clear_error(&gtkerr);
+
+	return state;
 }
 
 struct err_state shellfront_initialize(struct term_conf config) {

@@ -96,7 +96,7 @@ Window and terminal properties
 - width                   : 80
 - height                  : 24
 - title                   : ""
-- cmd for target command  : "echo -n  Hello World!; sleep infinity" (In terminal) or "" (In C library)
+- cmd for target command  : "echo 'Hello World!'; echo 'Press Enter To Exit...'; read" (In terminal) or "" (In C library)
 - interactive for input   : FALSE or 0
 - ispopup                 : FALSE or 0
 - once for single instance: FALSE or 0

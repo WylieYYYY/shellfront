@@ -52,7 +52,7 @@ void gtk_activate(GtkApplication *app, struct term_conf *config) {
 	// when command ends, terminal exits
 	g_signal_connect(terminal, "child-exited", G_CALLBACK(terminal_exit), window);
 	// using the default terminal shell
-	char **argv = (char *[]){(char *)g_getenv("SHELL"), "-c", config->cmd, NULL};
+	char **argv = (char *[]){ (char *)g_getenv("SHELL"), "-c", config->cmd, NULL };
 	// no timeout for command
 	vte_terminal_spawn_async(terminal, VTE_PTY_DEFAULT, NULL, argv, NULL,
 		G_SPAWN_SEARCH_PATH, NULL, NULL, NULL, -1, NULL, NULL, NULL);
