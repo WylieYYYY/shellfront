@@ -7,6 +7,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef UNIT_TEST
+	int mock_g_application_run(GApplication *application, int argc, char **argv);
+	#define g_application_run(x,y,z) mock_g_application_run(x,y,z)
+#endif
+
 // temporary lock file location, public to be seen by signal handler
 static char *tmpid;
 
@@ -125,11 +130,11 @@ struct err_state shellfront_parse(int argc, char **argv, struct term_conf *confi
 	return state;
 }
 
-struct err_state shellfront_initialize(struct term_conf config) {
+struct err_state shellfront_initialize(struct term_conf *config) {
 	// get lock file name
-	tmpid = sxprintf("/tmp/shellfront.%lu.lock", hash(config.cmd));
+	tmpid = sxprintf("/tmp/shellfront.%lu.lock", hash(config->cmd));
 	// if it is killing by flag or toggle
-	if (config.killopt || (config.toggle && access(tmpid, F_OK) != -1)) {
+	if (config->killopt || (config->toggle && access(tmpid, F_OK) != -1)) {
 		// target must have "once" flag, so lock file must be accessible
 		FILE *tmpfp = fopen(tmpid, "r");
 		if (tmpfp == NULL) {
@@ -163,7 +168,7 @@ struct err_state shellfront_initialize(struct term_conf config) {
 	
 	// get this process's process ID
 	int pid = getpid();
-	if (config.once) {
+	if (config->once) {
 		// write HDB UUCP lock file if ran with "once" flag
 		FILE *tmpfp = fopen(tmpid, "wx");
 		if (tmpfp == NULL) {
@@ -188,7 +193,7 @@ struct err_state shellfront_initialize(struct term_conf config) {
 	GtkApplication *app = gtk_application_new(appid, G_APPLICATION_FLAGS_NONE);
 	free(appid);
 	// link terminal setup function
-	g_signal_connect(app, "activate", G_CALLBACK(gtk_activate), &config);
+	g_signal_connect(app, "activate", G_CALLBACK(gtk_activate), config);
 	struct err_state state = { .has_error = 0, .errmsg = "" };
 	state.has_error = g_application_run(G_APPLICATION(app), 0, NULL);
 	if (state.has_error) strcpy(state.errmsg, "GTK error");

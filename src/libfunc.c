@@ -8,7 +8,7 @@
 #include <unistd.h>
 
 #ifdef UNIT_TEST
-	struct err_state mock_initialize(struct term_conf config);
+	struct err_state mock_initialize(struct term_conf *config);
 	#define shellfront_initialize(x) mock_initialize(x)
 	struct err_state mock_parse(int argc, char **argv, struct term_conf *config);
 	#define shellfront_parse(x,y,z) mock_parse(x,y,z)
@@ -25,6 +25,7 @@ const struct term_conf term_conf_default = {
 	.width = 80,
 	.height = 24,
 	.title = "",
+	.cmd = "",
 	.interactive = 0,
 	.ispopup = 0,
 	.once = 0,
@@ -35,7 +36,7 @@ const struct term_conf term_conf_default = {
 struct err_state shellfront_start_process(char *prog_name, struct term_conf config, char *current_tty) {
 	char *invoke_cmd = sxprintf("%s --no-shellfront 2>%s", prog_name, current_tty);
 	config.cmd = invoke_cmd;
-	struct err_state state = shellfront_initialize(config);
+	struct err_state state = shellfront_initialize(&config);
 	free(invoke_cmd);
 	// if executed with no error, indicate it is the original process
 	if (!state.has_error) strcpy(state.errmsg, "Original process, please end");
@@ -47,7 +48,7 @@ struct err_state shellfront_interpret(int argc, char **argv) {
 	struct err_state state = shellfront_parse(argc, argv, &config);
 	// parse error or continue execution
 	if (state.has_error) return state;
-	return shellfront_initialize(config);
+	return shellfront_initialize(&config);
 }
 
 struct err_state shellfront_catch_io_from_arg(int argc, char **argv) {

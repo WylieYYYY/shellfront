@@ -28,7 +28,7 @@ void gtk_activate(GtkApplication *app, struct term_conf *config);
 // cleanup no matter how it is terminated
 void sig_exit(int signo);
 // start the GUI with configuration struct
-struct err_state shellfront_initialize(struct term_conf config);
+struct err_state shellfront_initialize(struct term_conf *config);
 // accept and parse flags into configuration struct
 struct err_state shellfront_parse(int argc, char **argv, struct term_conf *parsed_conf);
 

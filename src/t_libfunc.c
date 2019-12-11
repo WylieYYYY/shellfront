@@ -10,11 +10,11 @@ struct err_state shellfront_start_process(char *prog_name, struct term_conf conf
 struct err_state shellfront_interpret(int argc, char **argv);
 
 static bool process_test_state;
-struct err_state mock_initialize(struct term_conf config) {
+struct err_state mock_initialize(struct term_conf *config) {
 	// every time it will be used twice, flip state
 	process_test_state ^= true;
 	// write the command detail for error message
-	if (process_test_state) return define_error(config.cmd);
+	if (process_test_state) return define_error(config->cmd);
 	// else return a blank err_state
 	return ((struct err_state) { .has_error = 0, .errmsg = "" });
 }
