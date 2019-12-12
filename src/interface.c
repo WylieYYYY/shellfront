@@ -23,7 +23,7 @@
 #endif
 
 // temporary lock file location, public to be seen by signal handler
-static char *tmpid;
+char *tmpid;
 
 void sig_exit(int signo) {
 	// remove lock file and free the ID
