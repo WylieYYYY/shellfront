@@ -8,8 +8,18 @@
 #include <string.h>
 
 #ifdef UNIT_TEST
+	#define getpid() 123
 	int mock_g_application_run(GApplication *application, int argc, char **argv);
 	#define g_application_run(x,y,z) mock_g_application_run(x,y,z)
+	struct err_state mock_unlock_process(void);
+	#define UNLOCK_PROCESS() mock_unlock_process()
+	struct err_state mock_lock_process(int pid);
+	#define LOCK_PROCESS(x) mock_lock_process(x)
+	int mock_access(const char *pathname, int mode);
+	#define access(x,y) mock_access(x,y)
+#else
+	#define UNLOCK_PROCESS() unlock_process()
+	#define LOCK_PROCESS(x) lock_process(x)
 #endif
 
 // temporary lock file location, public to be seen by signal handler
@@ -48,6 +58,7 @@ struct err_state shellfront_parse(int argc, char **argv, struct term_conf *confi
 	// default configurations
 	*config = term_conf_default;
 	config->cmd = "echo 'Hello World!'; echo 'Press Enter To Exit...'; read";
+	config->interactive = 1;
 	char *locstr = "0,0";
 	char *sizestr = "80x24";
 	
@@ -130,61 +141,68 @@ struct err_state shellfront_parse(int argc, char **argv, struct term_conf *confi
 	return state;
 }
 
+struct err_state unlock_process() {
+	// target must have "once" flag, so lock file must be accessible
+	FILE *tmpfp = fopen(tmpid, "r");
+	if (tmpfp == NULL) {
+		free(tmpid);
+		return define_error("No instance of application is running or it is not ran with -1");
+	}
+	// HDB UUCP lock file format process ID must be no longer than 10 characters
+	char buf[11];
+	buf[10] = '\0';
+	fread(buf, 1, 10, tmpfp);
+	fclose(tmpfp);
+	int pid = atoi(buf);
+	// open the process description file
+	char *procid = sxprintf("/proc/%i/comm", pid);
+	FILE *procfp = fopen(procid, "r");
+	free(procid);
+	struct err_state state;
+	if (procfp == NULL) state = define_error("No such process found, use system kill tool");
+	else {
+		fread(buf, 1, 10, procfp);
+		fclose(procfp);
+		// if it is indeed belong to "shellfront", kill it
+		if (strcmp(buf, "shellfront") == 0) kill(pid, SIGTERM);
+		else state = define_error("PID mismatch in record, use system kill tool");
+	}
+	// remove lock file and free resource
+	remove(tmpid);
+	free(tmpid);
+	return state;
+}
+struct err_state lock_process(int pid) {
+	// write HDB UUCP lock file if ran with "once" flag
+	FILE *tmpfp = fopen(tmpid, "wx");
+	if (tmpfp == NULL) {
+		char *msg = sxprintf("Existing instance is running, remove -1 flag or '%s' to unlock\n", tmpid);
+		struct err_state state = define_error(msg);
+		free(tmpid);
+		free(msg);
+		return state;
+	}
+	int pidlen = snprintf(NULL, 0, "%i", pid);
+	fprintf(tmpfp, "%*s%i\r\n", 10 - pidlen, "", pid);
+	fclose(tmpfp);
+	// clean up if terminated with SIGTERM or SIGINT (for terminal ^C)
+	struct sigaction exithandler = { .sa_handler = sig_exit };
+	sigaction(SIGINT, &exithandler, NULL);
+	sigaction(SIGTERM, &exithandler, NULL);
+
+	return ((struct err_state) { .has_error = 0, .errmsg = "" });
+}
 struct err_state shellfront_initialize(struct term_conf *config) {
 	// get lock file name
 	tmpid = sxprintf("/tmp/shellfront.%lu.lock", hash(config->cmd));
 	// if it is killing by flag or toggle
-	if (config->killopt || (config->toggle && access(tmpid, F_OK) != -1)) {
-		// target must have "once" flag, so lock file must be accessible
-		FILE *tmpfp = fopen(tmpid, "r");
-		if (tmpfp == NULL) {
-			free(tmpid);
-			return define_error("No instance of application is running or it is not ran with -1");
-		}
-		// HDB UUCP lock file format process ID must be no longer than 10 characters
-		char buf[11];
-		buf[10] = '\0';
-		fread(buf, 1, 10, tmpfp);
-		fclose(tmpfp);
-		int pid = atoi(buf);
-		// open the process description file
-		char *procid = sxprintf("/proc/%i/comm", pid);
-		FILE *procfp = fopen(procid, "r");
-		free(procid);
-		struct err_state state;
-		if (procfp == NULL) state = define_error("No such process found, use system kill tool");
-		else {
-			fread(buf, 1, 10, procfp);
-			fclose(procfp);
-			// if it is indeed belong to "shellfront", kill it
-			if (strcmp(buf, "shellfront") == 0) kill(pid, SIGTERM);
-			else state = define_error("PID mismatch in record, use system kill tool");
-		}
-		// remove lock file and free resource
-		remove(tmpid);
-		free(tmpid);
-		return state;
-	}
+	if (config->killopt || (config->toggle && access(tmpid, F_OK) != -1)) return UNLOCK_PROCESS();
 	
 	// get this process's process ID
 	int pid = getpid();
 	if (config->once) {
-		// write HDB UUCP lock file if ran with "once" flag
-		FILE *tmpfp = fopen(tmpid, "wx");
-		if (tmpfp == NULL) {
-			char *msg = sxprintf("Existing instance is running, remove -1 flag or '%s' to unlock\n", tmpid);
-			struct err_state state = define_error(msg);
-			free(tmpid);
-			free(msg);
-			return state;
-		}
-		int pidlen = snprintf(NULL, 0, "%i", pid);
-		fprintf(tmpfp, "%*s%i\r\n", 10 - pidlen, "", pid);
-		fclose(tmpfp);
-		// clean up if terminated with SIGTERM or SIGINT (for terminal ^C)
-		struct sigaction exithandler = { .sa_handler = sig_exit };
-		sigaction(SIGINT, &exithandler, NULL);
-		sigaction(SIGTERM, &exithandler, NULL);
+		struct err_state state = LOCK_PROCESS(pid);
+		if (state.has_error) return state;
 		// free the lock file name because it is irrelevant for multiple instance application
 	} else free(tmpid);
 	

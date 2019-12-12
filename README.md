@@ -1,7 +1,7 @@
 # ShellFront
 [![pipeline status](https://gitlab.com/WylieYYYY/shellfront/badges/master/pipeline.svg)](https://gitlab.com/WylieYYYY/shellfront/commits/master)
 [![coverage report](https://gitlab.com/WylieYYYY/shellfront/badges/master/coverage.svg)](https://gitlab.com/WylieYYYY/shellfront/commits/master)  
-ShellFront is a simple frontend for terminal applications and linux shell scripts. Making terminal application window to be customizable by user
+ShellFront is a simple frontend for terminal applications and Linux shell scripts. Making terminal application window to be customizable by user
 or developer.
 #### Screenshot
 Alsamixer started from right-clicking the clock in tint2.  
@@ -97,11 +97,11 @@ Window and terminal properties
 - height                  : 24
 - title                   : ""
 - cmd for target command  : "echo 'Hello World!'; echo 'Press Enter To Exit...'; read" (In terminal) or "" (In C library)
-- interactive for input   : FALSE or 0
-- ispopup                 : FALSE or 0
-- once for single instance: FALSE or 0
+- interactive for input   : true or 1 (In terminal) or false or 0 (In C library)
+- ispopup                 : false or 0
+- once for single instance: false or 0
 
 Invoke behaviours switch
-- toggle when invoked     : FALSE or 0
-- killopt for killing     : FALSE or 0 
+- toggle when invoked     : false or 0
+- killopt for killing     : false or 0
 ```
