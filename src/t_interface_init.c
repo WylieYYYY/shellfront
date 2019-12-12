@@ -70,14 +70,14 @@ void test_interface_init() {
 	state = shellfront_initialize(&config);
 	assert(!state.has_error);
 	assert(strcmp(state.errmsg, "") == 0);
-	// test toggle and lock file exists
+	// test toggle and lock file does not exists
 	config.cmd = "hi";
 	config.once = false;
 	config.toggle = true;
 	state = shellfront_initialize(&config);
 	assert(state.has_error == 2);
 	assert(strcmp(state.errmsg, "GTK error") == 0);
-	// test toggle and lock file does not exists
+	// test toggle and lock file exists
 	state = shellfront_initialize(&config);
 	assert(!state.has_error);
 	assert(strcmp(state.errmsg, "Unlocked process") == 0);

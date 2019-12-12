@@ -17,6 +17,8 @@
 	#define LOCK_PROCESS(x) mock_lock_process(x)
 	int mock_access(const char *pathname, int mode);
 	#define access(x,y) mock_access(x,y)
+	int mock_sigaction(int signum, const struct sigaction *act, struct sigaction *oldact);
+	#define sigaction(x,y,z) mock_sigaction(x,y,z)
 #else
 	#define UNLOCK_PROCESS() unlock_process()
 	#define LOCK_PROCESS(x) lock_process(x)
@@ -141,7 +143,7 @@ struct err_state shellfront_parse(int argc, char **argv, struct term_conf *confi
 	return state;
 }
 
-struct err_state unlock_process() {
+struct err_state unlock_process(void) {
 	// target must have "once" flag, so lock file must be accessible
 	FILE *tmpfp = fopen(tmpid, "r");
 	if (tmpfp == NULL) {
@@ -176,7 +178,7 @@ struct err_state lock_process(int pid) {
 	// write HDB UUCP lock file if ran with "once" flag
 	FILE *tmpfp = fopen(tmpid, "wx");
 	if (tmpfp == NULL) {
-		char *msg = sxprintf("Existing instance is running, remove -1 flag or '%s' to unlock\n", tmpid);
+		char *msg = sxprintf("Existing instance is running, remove -1 flag or '%s' to unlock", tmpid);
 		struct err_state state = define_error(msg);
 		free(tmpid);
 		free(msg);
