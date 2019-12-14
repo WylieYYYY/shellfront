@@ -19,9 +19,16 @@
 	#define access(x,y) mock_access(x,y)
 	int mock_sigaction(int signum, const struct sigaction *act, struct sigaction *oldact);
 	#define sigaction(x,y,z) mock_sigaction(x,y,z)
+	FILE *mock_proc_fopen(const char *filename, const char *mode);
+	#define FOPEN(x,y) mock_proc_fopen(x,y)
+	int mock_kill(pid_t pid, int sig);
+	#define kill(x,y) mock_kill(x,y)
+	void mock_exit(int status);
+	#define exit(x) mock_exit(x)
 #else
 	#define UNLOCK_PROCESS() unlock_process()
 	#define LOCK_PROCESS(x) lock_process(x)
+	#define FOPEN(x,y) fopen(x,y)
 #endif
 
 // temporary lock file location, public to be seen by signal handler
@@ -158,9 +165,9 @@ struct err_state unlock_process(void) {
 	int pid = atoi(buf);
 	// open the process description file
 	char *procid = sxprintf("/proc/%i/comm", pid);
-	FILE *procfp = fopen(procid, "r");
+	FILE *procfp = FOPEN(procid, "r");
 	free(procid);
-	struct err_state state;
+	struct err_state state = { .has_error = 0, .errmsg = "" };
 	if (procfp == NULL) state = define_error("No such process found, use system kill tool");
 	else {
 		fread(buf, 1, 10, procfp);
