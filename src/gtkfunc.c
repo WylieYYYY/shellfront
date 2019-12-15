@@ -13,6 +13,20 @@
 	#define gtk_window_present(x) mock_gtk_window_present(x)
 	void mock_sig_exit(int signo);
 	#define sig_exit(x) mock_sig_exit(x)
+	GtkWidget *mock_gtk_application_window_new(GtkApplication *application);
+	#define gtk_application_window_new(x) mock_gtk_application_window_new(x)
+	extern VteTerminal *test_terminal;
+	#define vte_terminal_new() GTK_WIDGET(test_terminal)
+	void mock_vte_terminal_set_size(VteTerminal *terminal, long columns, long rows);
+	#define vte_terminal_set_size(x,y,z) mock_vte_terminal_set_size(x,y,z)
+	void mock_gtk_widget_show_all(GtkWidget *widget);
+	#define gtk_widget_show_all(x) mock_gtk_widget_show_all(x)
+	void mock_vte_terminal_spawn_async(VteTerminal *terminal, VtePtyFlags pty_flags,
+		const char *working_directory, char **argv, char **envv, GSpawnFlags spawn_flags_,
+		GSpawnChildSetupFunc child_setup, void *child_setup_data,
+		GDestroyNotify child_setup_data_destroy, int timeout, GCancellable *cancellable,
+		VteTerminalSpawnAsyncCallback callback, void *user_data);
+	#define vte_terminal_spawn_async(a,b,c,d,e,f,g,h,i,j,k,l,m) mock_vte_terminal_spawn_async(a,b,c,d,e,f,g,h,i,j,k,l,m)
 #endif
 
 // change focus to the window
@@ -43,11 +57,7 @@ void window_gravitate(int window_width, int window_height,
 	// take vertical taskbar into consideration
 	else config->y += workarea->y;
 }
-
-void gtk_activate(GtkApplication *app, struct term_conf *config) {
-	GtkWindow *window = GTK_WINDOW(gtk_application_window_new(app));
-	VteTerminal *terminal = VTE_TERMINAL(vte_terminal_new());
-	
+void apply_opt(GtkWindow *window, VteTerminal *terminal, struct term_conf *config) {
 	// remove the lock file and free ID string when window destroy
 	if (config->once) g_signal_connect(window, "destroy", G_CALLBACK(window_destroy), NULL);
 	
@@ -63,7 +73,14 @@ void gtk_activate(GtkApplication *app, struct term_conf *config) {
 		gtk_widget_set_events(GTK_WIDGET(window), GDK_FOCUS_CHANGE_MASK);
 		g_signal_connect(GTK_WIDGET(window), "focus-out-event", G_CALLBACK(window_focus_out), window);
 	} else gtk_window_set_resizable(window, FALSE);
-	
+}
+
+void gtk_activate(GtkApplication *app, struct term_conf *config) {
+	GtkWindow *window = GTK_WINDOW(gtk_application_window_new(app));
+	VteTerminal *terminal = VTE_TERMINAL(vte_terminal_new());
+
+	apply_opt(window, terminal, config);
+
 	// set the window title
 	gtk_window_set_title(window, config->title);
 	// change focus to window when shown
@@ -90,6 +107,4 @@ void gtk_activate(GtkApplication *app, struct term_conf *config) {
 	gtk_window_get_size(window, &window_width, &window_height);
 	window_gravitate(window_width, window_height, &workarea, config);
 	gtk_window_move(window, config->x, config->y);
-	// keep the popup on top
-	if (config->ispopup) gtk_window_set_keep_above(window, TRUE);
 }

@@ -221,7 +221,7 @@ struct err_state shellfront_initialize(struct term_conf *config) {
 	free(appid);
 	// link terminal setup function
 	g_signal_connect(app, "activate", G_CALLBACK(gtk_activate), config);
-	struct err_state state = { .has_error = 0, .errmsg = "" };
+	struct err_state state = { .errmsg = "" };
 	state.has_error = g_application_run(G_APPLICATION(app), 0, NULL);
 	if (state.has_error) strcpy(state.errmsg, "GTK error");
 	g_object_unref(app);
