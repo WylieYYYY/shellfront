@@ -9,6 +9,7 @@ default:
     before_script:
         - Xvfb :1 -screen 0 1600x1200x24 &
         - export DISPLAY=:1
+        - export SHELL=/bin/bash
 
 build-pkg:
     stage: build

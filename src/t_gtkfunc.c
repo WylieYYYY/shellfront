@@ -33,7 +33,7 @@ void mock_vte_terminal_spawn_async(VteTerminal *terminal, VtePtyFlags pty_flags,
 		VteTerminalSpawnAsyncCallback callback, void *user_data) {
 	assert(terminal == test_terminal);
 	assert(pty_flags == VTE_PTY_DEFAULT);
-	assert(strcmp(argv[0], g_getenv("SHELL")) == 0);
+	assert(strcmp(argv[0], "/bin/bash") == 0);
 	assert(strcmp(argv[1], "-c") == 0);
 	assert(strcmp(argv[2], "command") == 0);
 	assert(argv[3] == NULL);
