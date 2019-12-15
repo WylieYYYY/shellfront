@@ -46,7 +46,6 @@ void window_gravitate(int window_width, int window_height,
 
 void gtk_activate(GtkApplication *app, struct term_conf *config) {
 	GtkWindow *window = GTK_WINDOW(gtk_application_window_new(app));
-	printf("ici\n");
 	VteTerminal *terminal = VTE_TERMINAL(vte_terminal_new());
 	
 	// remove the lock file and free ID string when window destroy
