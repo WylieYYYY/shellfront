@@ -21,12 +21,15 @@ int mock_sigaction(int signum, const struct sigaction *act, struct sigaction *ol
 FILE *mock_proc_fopen(const char *filename, const char *mode) {
 	assert(strcmp(filename, "/proc/123/comm") == 0);
 	assert(strcmp(mode, "r") == 0);
-	if (test_state == -1) return NULL;
+	if (test_state == -1) {
+		remove("/tmp/shellfront.mock.proc");
+		return NULL;
+	}
 	// create a verifiable process file
-	FILE *procfp = fopen("/tmp/shellfront.123.mockproc", "w");
+	FILE *procfp = fopen("/tmp/shellfront.mock.proc", "w");
 	fprintf(procfp, test_state ? "grep" : "shellfront\n");
 	fclose(procfp);
-	return fopen("/tmp/shellfront.123.mockproc", "r");
+	return fopen("/tmp/shellfront.mock.proc", "r");
 }
 int mock_kill(pid_t pid, int sig) {
 	assert(pid == 123);
@@ -38,7 +41,7 @@ void test_interface_lock() {
 	// struct err_state lock_process(int pid)
 	// no error
 	tmpid = malloc(29);
-	strcpy(tmpid, "/tmp/shellfront.5863446.lock");
+	strcpy(tmpid, "/tmp/shellfront.mock.lock");
 	remove(tmpid);
 	struct err_state state = lock_process(123);
 	assert(!state.has_error);
@@ -54,19 +57,19 @@ void test_interface_lock() {
 	state = lock_process(123);
 	assert(state.has_error);
 	assert(strcmp(state.errmsg, "Existing instance is running, \
-remove -1 flag or '/tmp/shellfront.5863446.lock' to unlock") == 0);
+remove -1 flag or '/tmp/shellfront.mock.lock' to unlock") == 0);
 	remove(tmpid);
 	// struct err_state unlock_process(void)
 	// PID mismatch error
 	tmpid = malloc(29);
-	strcpy(tmpid, "/tmp/shellfront.5863446.lock");
+	strcpy(tmpid, "/tmp/shellfront.mock.lock");
 	state = unlock_process();
 	assert(state.has_error);
 	assert(strcmp(state.errmsg, "PID mismatch in record, use system kill tool") == 0);
 	assert(test_state == 1);
 	// no error
 	tmpid = malloc(29);
-	strcpy(tmpid, "/tmp/shellfront.5863446.lock");
+	strcpy(tmpid, "/tmp/shellfront.mock.lock");
 	lock_process(123);
 	test_state = 0;
 	state = unlock_process();
@@ -74,13 +77,13 @@ remove -1 flag or '/tmp/shellfront.5863446.lock' to unlock") == 0);
 	assert(test_state == 2);
 	// no instance error
 	tmpid = malloc(23);
-	strcpy(tmpid, "/tmp/shellfront.0.lock");
+	strcpy(tmpid, "/tmp/shellfront.fake.lock");
 	state = unlock_process();
 	assert(state.has_error);
 	assert(strcmp(state.errmsg, "No instance of application is running or it is not ran with -1") == 0);
 	// no process error
 	tmpid = malloc(29);
-	strcpy(tmpid, "/tmp/shellfront.5863446.lock");
+	strcpy(tmpid, "/tmp/shellfront.mock.lock");
 	lock_process(123);
 	test_state = -1;
 	state = unlock_process();

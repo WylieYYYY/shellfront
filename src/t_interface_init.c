@@ -10,7 +10,7 @@ extern char *tmpid;
 void gtk_activate(GtkApplication *app, struct term_conf *config);
 struct err_state shellfront_initialize(struct term_conf *config);
 
-struct term_conf config;
+static struct term_conf config;
 static bool run_test_state = true;
 int mock_g_application_run(GApplication *application, int argc, char **argv) {
 	// check application id by process id
