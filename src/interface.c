@@ -66,8 +66,7 @@ struct err_state validate_opt(char *locstr, char *sizestr, struct term_conf *con
 struct err_state shellfront_parse(int argc, char **argv, struct term_conf *config) {
 	// default configurations
 	*config = term_conf_default;
-	config->cmd = "echo 'Hello World!'; echo 'Press Enter To Exit...'; read";
-	config->interactive = 1;
+	config->cmd = "echo 'Hello World!'; read";
 	char *locstr = "0,0";
 	char *sizestr = "80x24";
 	
