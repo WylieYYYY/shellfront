@@ -12,7 +12,7 @@ struct err_state define_error(char *msg) {
 	return err;
 }
 
-int parse_size_str(char *size, long *x, long *y) {
+int _shellfront_parse_size_str(char *size, long *x, long *y) {
 	char *cp = strdup(size);
 	char *x_str = strsep(&cp, "x");
 	// no delimiter, pointer moved to the end
@@ -26,7 +26,7 @@ int parse_size_str(char *size, long *x, long *y) {
 	// size cannot be 0x0 or less
 	return *x > 0 && *y > 0;
 }
-int parse_loc_str(char *loc, int *x, int *y) {
+int _shellfront_parse_loc_str(char *loc, int *x, int *y) {
 	char *cp = strdup(loc);
 	char *x_str = strsep(&cp, ",");
 	if (cp == NULL) return 0;
@@ -38,7 +38,7 @@ int parse_loc_str(char *loc, int *x, int *y) {
 	// location cannot be negative
 	return !(*x < 0 || *y < 0);
 }
-unsigned long hash(char *str) {
+unsigned long djb_hash(char *str) {
 	unsigned long hash = 5381;
 	unsigned char ch;
     while ((ch = (unsigned char)*str++)) hash = ((hash << 5) + hash) + ch;

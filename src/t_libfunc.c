@@ -6,25 +6,25 @@
 #include <string.h>
 
 struct err_state define_error(char *msg);
-struct err_state shellfront_start_process(char *prog_name, struct term_conf config, char *current_tty);
+struct err_state _shellfront_start_process(char *prog_name, struct shellfront_term_conf config, char *current_tty);
 struct err_state shellfront_interpret(int argc, char **argv);
 
 static bool process_test_state;
-struct err_state mock_initialize(struct term_conf *config) {
+struct err_state mock_initialize(struct shellfront_term_conf *config) {
 	process_test_state ^= true;
 	// write the command detail for error message
 	if (process_test_state) return define_error(config->cmd);
 	return ((struct err_state) { .has_error = 0, .errmsg = "" });
 }
 static bool parse_test_state = true;
-struct err_state mock_parse(int argc, char **argv, struct term_conf *config) {
+struct err_state mock_parse(int argc, char **argv, struct shellfront_term_conf *config) {
 	parse_test_state ^= true;
 	if (parse_test_state) return define_error("Parse error");
 	// put command in for mock_initialize
 	config->cmd = "Parsed command";
 	return ((struct err_state) { .has_error = 0, .errmsg = "" });
 }
-struct err_state mock_start_process(char *prog_name, struct term_conf config, char *current_tty) {
+struct err_state mock_start_process(char *prog_name, struct shellfront_term_conf config, char *current_tty) {
 	process_test_state ^= true;
 	if (process_test_state) return define_error("Start process error");
 	// return message to indicate it is outside ShellFront
@@ -32,14 +32,14 @@ struct err_state mock_start_process(char *prog_name, struct term_conf config, ch
 }
 
 void test_libfunc() {
-	// struct err_state shellfront_start_process(char *prog_name, struct term_conf config, char *current_tty)
+	// struct err_state _shellfront_start_process(char *prog_name, struct shellfront_term_conf config, char *current_tty)
 	// test state[1, 0] (Initialize error)
-	struct term_conf config = term_conf_default;
-	struct err_state state = shellfront_start_process("procname", config, "ttyname");
+	struct shellfront_term_conf config = shellfront_term_conf_default;
+	struct err_state state = _shellfront_start_process("procname", config, "ttyname");
 	assert(state.has_error);
 	assert(strcmp(state.errmsg, "procname --no-shellfront 2>ttyname") == 0);
 	// test state[0, 0] (No error)
-	state = shellfront_start_process("procname", config, "ttyname");
+	state = _shellfront_start_process("procname", config, "ttyname");
 	assert(!state.has_error);
 	assert(strcmp(state.errmsg, "Original process, please end") == 0);
 	// struct err_state shellfront_interpret(int argc, char **argv)
@@ -72,7 +72,7 @@ void test_libfunc() {
 	state = shellfront_catch_io_from_arg(3, argv);
 	assert(state.has_error);
 	assert(strcmp(state.errmsg, "Parse error") == 0);
-	// struct err_state shellfront_catch_io(int argc, char **argv, struct term_conf config)
+	// struct err_state shellfront_catch_io(int argc, char **argv, struct shellfront_term_conf config)
 	// test state[0, 0] (No error)
 	config.cmd = NULL;
 	state = shellfront_catch_io(3, argv, config);

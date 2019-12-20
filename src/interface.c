@@ -12,9 +12,9 @@
 	int mock_g_application_run(GApplication *application, int argc, char **argv);
 	#define g_application_run(x,y,z) mock_g_application_run(x,y,z)
 	struct err_state mock_unlock_process(void);
-	#define UNLOCK_PROCESS() mock_unlock_process()
+	#define _SHELLFRONT_UNLOCK_PROCESS() mock_unlock_process()
 	struct err_state mock_lock_process(int pid);
-	#define LOCK_PROCESS(x) mock_lock_process(x)
+	#define _SHELLFRONT_LOCK_PROCESS(x) mock_lock_process(x)
 	int mock_access(const char *pathname, int mode);
 	#define access(x,y) mock_access(x,y)
 	int mock_sigaction(int signum, const struct sigaction *act, struct sigaction *oldact);
@@ -26,26 +26,26 @@
 	void mock_exit(int status);
 	#define exit(x) mock_exit(x)
 #else
-	#define UNLOCK_PROCESS() unlock_process()
-	#define LOCK_PROCESS(x) lock_process(x)
+	#define _SHELLFRONT_UNLOCK_PROCESS() _shellfront_unlock_process()
+	#define _SHELLFRONT_LOCK_PROCESS(x) _shellfront_lock_process(x)
 	#define FOPEN(x,y) fopen(x,y)
 #endif
 
 // temporary lock file location, public to be seen by signal handler
-char *tmpid;
+char *_shellfront_tmpid;
 
-void sig_exit(int signo) {
+void _shellfront_sig_exit(int signo) {
 	// remove lock file and free the ID
-	remove(tmpid);
-	free(tmpid);
+	remove(_shellfront_tmpid);
+	free(_shellfront_tmpid);
 	exit(0);
 }
 
-struct err_state validate_opt(char *locstr, char *sizestr, struct term_conf *config, GError *gtkerr) {
-	if (!parse_loc_str(locstr, &(config->x), &(config->y))) {
+struct err_state _shellfront_validate_opt(char *locstr, char *sizestr, struct shellfront_term_conf *config, GError *gtkerr) {
+	if (!_shellfront_parse_loc_str(locstr, &(config->x), &(config->y))) {
 		return define_error("Incorrect location format, should be X,Y");
 	}
-	if (!parse_size_str(sizestr, &(config->width), &(config->height))) {
+	if (!_shellfront_parse_size_str(sizestr, &(config->width), &(config->height))) {
 		return define_error("Incorrect size format, should be XxY");
 	}
 	if (config->grav < 1 || config->grav > 9) {
@@ -63,9 +63,9 @@ struct err_state validate_opt(char *locstr, char *sizestr, struct term_conf *con
 	return state;
 }
 
-struct err_state shellfront_parse(int argc, char **argv, struct term_conf *config) {
+struct err_state _shellfront_parse(int argc, char **argv, struct shellfront_term_conf *config) {
 	// default configurations
-	*config = term_conf_default;
+	*config = shellfront_term_conf_default;
 	config->cmd = "echo 'Hello World!'; read";
 	char *locstr = "0,0";
 	char *sizestr = "80x24";
@@ -143,17 +143,17 @@ struct err_state shellfront_parse(int argc, char **argv, struct term_conf *confi
 	GError *gtkerr = NULL;
 	// description and register arguments
 	gtk_init_with_args(&argc, &argv, "- simple frontend for shell scripts", options, NULL, &gtkerr);
-	struct err_state state = validate_opt(locstr, sizestr, config, gtkerr);
+	struct err_state state = _shellfront_validate_opt(locstr, sizestr, config, gtkerr);
 	g_clear_error(&gtkerr);
 
 	return state;
 }
 
-struct err_state unlock_process(void) {
+struct err_state _shellfront_unlock_process(void) {
 	// target must have "once" flag, so lock file must be accessible
-	FILE *tmpfp = fopen(tmpid, "r");
+	FILE *tmpfp = fopen(_shellfront_tmpid, "r");
 	if (tmpfp == NULL) {
-		free(tmpid);
+		free(_shellfront_tmpid);
 		return define_error("No instance of application is running or it is not ran with -1");
 	}
 	// HDB UUCP lock file format process ID must be no longer than 10 characters
@@ -176,17 +176,17 @@ struct err_state unlock_process(void) {
 		else state = define_error("PID mismatch in record, use system kill tool");
 	}
 	// remove lock file and free resource
-	remove(tmpid);
-	free(tmpid);
+	remove(_shellfront_tmpid);
+	free(_shellfront_tmpid);
 	return state;
 }
-struct err_state lock_process(int pid) {
+struct err_state _shellfront_lock_process(int pid) {
 	// write HDB UUCP lock file if ran with "once" flag
-	FILE *tmpfp = fopen(tmpid, "wx");
+	FILE *tmpfp = fopen(_shellfront_tmpid, "wx");
 	if (tmpfp == NULL) {
-		char *msg = sxprintf("Existing instance is running, remove -1 flag or '%s' to unlock", tmpid);
+		char *msg = sxprintf("Existing instance is running, remove -1 flag or '%s' to unlock", _shellfront_tmpid);
 		struct err_state state = define_error(msg);
-		free(tmpid);
+		free(_shellfront_tmpid);
 		free(msg);
 		return state;
 	}
@@ -194,32 +194,32 @@ struct err_state lock_process(int pid) {
 	fprintf(tmpfp, "%*s%i\r\n", 10 - pidlen, "", pid);
 	fclose(tmpfp);
 	// clean up if terminated with SIGTERM or SIGINT (for terminal ^C)
-	struct sigaction exithandler = { .sa_handler = sig_exit };
+	struct sigaction exithandler = { .sa_handler = _shellfront_sig_exit };
 	sigaction(SIGINT, &exithandler, NULL);
 	sigaction(SIGTERM, &exithandler, NULL);
 
 	return ((struct err_state) { .has_error = 0, .errmsg = "" });
 }
-struct err_state shellfront_initialize(struct term_conf *config) {
+struct err_state _shellfront_initialize(struct shellfront_term_conf *config) {
 	// get lock file name
-	tmpid = sxprintf("/tmp/shellfront.%lu.lock", hash(config->cmd));
+	_shellfront_tmpid = sxprintf("/tmp/shellfront.%lu.lock", djb_hash(config->cmd));
 	// if it is killing by flag or toggle
-	if (config->killopt || (config->toggle && access(tmpid, F_OK) != -1)) return UNLOCK_PROCESS();
+	if (config->killopt || (config->toggle && access(_shellfront_tmpid, F_OK) != -1)) return _SHELLFRONT_UNLOCK_PROCESS();
 	
 	// get this process's process ID
 	int pid = getpid();
 	if (config->once) {
-		struct err_state state = LOCK_PROCESS(pid);
+		struct err_state state = _SHELLFRONT_LOCK_PROCESS(pid);
 		if (state.has_error) return state;
 		// free the lock file name because it is irrelevant for multiple instance application
-	} else free(tmpid);
+	} else free(_shellfront_tmpid);
 	
 	// PID is guarenteed unique and can be used as APPID
 	char *appid = sxprintf("shellfront.proc%i", pid);
 	GtkApplication *app = gtk_application_new(appid, G_APPLICATION_FLAGS_NONE);
 	free(appid);
 	// link terminal setup function
-	g_signal_connect(app, "activate", G_CALLBACK(gtk_activate), config);
+	g_signal_connect(app, "activate", G_CALLBACK(_shellfront_gtk_activate), config);
 	struct err_state state = { .errmsg = "" };
 	state.has_error = g_application_run(G_APPLICATION(app), 0, NULL);
 	if (state.has_error) strcpy(state.errmsg, "GTK error");

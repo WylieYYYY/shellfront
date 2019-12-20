@@ -5,12 +5,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-extern char *tmpid;
+extern char *_shellfront_tmpid;
 void test_interface_parse(void);
 void test_interface_init(void);
 void test_interface_lock(void);
 
-void sig_exit(int signo);
+void _shellfront_sig_exit(int signo);
 
 static int test_state;
 void mock_exit(int status) {
@@ -23,9 +23,9 @@ void test_interface() {
 	test_interface_init();
 	test_interface_lock();
 	// void sig_exit(int signo)
-	tmpid = malloc(29);
-	strcpy(tmpid, "/tmp/shellfront.123.mockproc");
-	sig_exit(1);
+	_shellfront_tmpid = malloc(29);
+	strcpy(_shellfront_tmpid, "/tmp/shellfront.123.mockproc");
+	_shellfront_sig_exit(1);
 	assert(fopen("/tmp/shellfront.123.mockproc", "r") == NULL);
 	assert(test_state == 1);
 }

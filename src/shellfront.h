@@ -13,7 +13,7 @@ struct err_state {
 	char errmsg[100];
 };
 // configuration structure
-struct term_conf {
+struct shellfront_term_conf {
 	// window gravity toward edges
 	unsigned int grav;
 	// position coordinates
@@ -35,13 +35,13 @@ struct term_conf {
 	int killopt;
 };
 // constant struct with default member values
-const struct term_conf term_conf_default;
+const struct shellfront_term_conf shellfront_term_conf_default;
 // passing arguments and use shellfront just like invoking in terminal
 struct err_state shellfront_interpret(int argc, char **argv);
 // let user to choose how the application is displayed
 struct err_state shellfront_catch_io_from_arg(int argc, char **argv);
 // you decide how the application is presented to the user
-struct err_state shellfront_catch_io(int argc, char **argv, struct term_conf config);
+struct err_state shellfront_catch_io(int argc, char **argv, struct shellfront_term_conf config);
 
 #ifdef __cplusplus
 }

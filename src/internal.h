@@ -10,26 +10,26 @@
 // set error struct faster
 struct err_state define_error(char *msg);
 // parse window size argument
-int parse_size_str(char *size, long *x, long *y);
+int _shellfront_parse_size_str(char *size, long *x, long *y);
 // parse window location argument
-int parse_loc_str(char *loc, int *x, int *y);
+int _shellfront_parse_loc_str(char *loc, int *x, int *y);
 // djb2 hash function for lock file name for normalization
-unsigned long hash(char *str);
+unsigned long djb_hash(char *str);
 // allocate and perform snprintf automatically
 char *sxprintf(char *fmt, ...);
 
 // gtkfunc.c
 
 // the start of the GTK+ app
-void gtk_activate(GtkApplication *app, struct term_conf *config);
+void _shellfront_gtk_activate(GtkApplication *app, struct shellfront_term_conf *config);
 
 // interface.c
 
 // cleanup no matter how it is terminated
-void sig_exit(int signo);
+void _shellfront_sig_exit(int signo);
 // start the GUI with configuration struct
-struct err_state shellfront_initialize(struct term_conf *config);
+struct err_state _shellfront_initialize(struct shellfront_term_conf *config);
 // accept and parse flags into configuration struct
-struct err_state shellfront_parse(int argc, char **argv, struct term_conf *parsed_conf);
+struct err_state _shellfront_parse(int argc, char **argv, struct shellfront_term_conf *parsed_conf);
 
 #endif

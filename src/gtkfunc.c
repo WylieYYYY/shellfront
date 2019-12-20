@@ -12,7 +12,7 @@
 	void mock_gtk_window_present(GtkWindow *window);
 	#define gtk_window_present(x) mock_gtk_window_present(x)
 	void mock_sig_exit(int signo);
-	#define sig_exit(x) mock_sig_exit(x)
+	#define _shellfront_sig_exit(x) mock_sig_exit(x)
 	GtkWidget *mock_gtk_application_window_new(GtkApplication *application);
 	#define gtk_application_window_new(x) mock_gtk_application_window_new(x)
 	extern VteTerminal *test_terminal;
@@ -30,23 +30,23 @@
 #endif
 
 // change focus to the window
-void window_show(GtkWindow *window, void *user_data) {
+void _shellfront_window_show(GtkWindow *window, void *user_data) {
 	gtk_window_present(window);
 }
 // also give out signal to handler when closed with "once" flag
-void window_destroy(GtkWindow *window, void *user_data) {
-	sig_exit(2);
+void _shellfront_window_destroy(GtkWindow *window, void *user_data) {
+	_shellfront_sig_exit(2);
 }
 // if terminal closed, close the window
-void terminal_exit(VteTerminal *terminal, int status, GtkWindow *window) {
+void _shellfront_terminal_exit(VteTerminal *terminal, int status, GtkWindow *window) {
 	gtk_window_close(window);
 }
-void window_focus_out(GtkWidget *widget, GdkEvent *event, GtkWindow *window) {
+void _shellfront_window_focus_out(GtkWidget *widget, GdkEvent *event, GtkWindow *window) {
 	gtk_window_close(window);
 }
 
-void window_gravitate(int window_width, int window_height,
-	GdkRectangle *workarea, struct term_conf *config) {
+void _shellfront_window_gravitate(int window_width, int window_height,
+	GdkRectangle *workarea, struct shellfront_term_conf *config) {
 	// calculations with gravity setting
 	if (config->grav % 3 == 0) config->x = (workarea->width - window_width) - config->x;
 	else if (config->grav % 3 == 2) config->x = (workarea->width - window_width) / 2;
@@ -57,9 +57,9 @@ void window_gravitate(int window_width, int window_height,
 	// take vertical taskbar into consideration
 	else config->y += workarea->y;
 }
-void apply_opt(GtkWindow *window, VteTerminal *terminal, struct term_conf *config) {
+void _shellfront_apply_opt(GtkWindow *window, VteTerminal *terminal, struct shellfront_term_conf *config) {
 	// remove the lock file and free ID string when window destroy
-	if (config->once) g_signal_connect(window, "destroy", G_CALLBACK(window_destroy), NULL);
+	if (config->once) g_signal_connect(window, "destroy", G_CALLBACK(_shellfront_window_destroy), NULL);
 	
 	// don't give any attention if it is not interactive
 	if (!config->interactive) gtk_widget_set_sensitive(GTK_WIDGET(terminal), FALSE);
@@ -71,24 +71,24 @@ void apply_opt(GtkWindow *window, VteTerminal *terminal, struct term_conf *confi
 		gtk_window_set_skip_taskbar_hint(window, TRUE);
 		// close popup when focus is out
 		gtk_widget_set_events(GTK_WIDGET(window), GDK_FOCUS_CHANGE_MASK);
-		g_signal_connect(GTK_WIDGET(window), "focus-out-event", G_CALLBACK(window_focus_out), window);
+		g_signal_connect(GTK_WIDGET(window), "focus-out-event", G_CALLBACK(_shellfront_window_focus_out), window);
 	} else gtk_window_set_resizable(window, FALSE);
 }
 
-void gtk_activate(GtkApplication *app, struct term_conf *config) {
+void _shellfront_gtk_activate(GtkApplication *app, struct shellfront_term_conf *config) {
 	GtkWindow *window = GTK_WINDOW(gtk_application_window_new(app));
 	VteTerminal *terminal = VTE_TERMINAL(vte_terminal_new());
 
-	apply_opt(window, terminal, config);
+	_shellfront_apply_opt(window, terminal, config);
 
 	// set the window title
 	gtk_window_set_title(window, config->title);
 	// change focus to window when shown
-	g_signal_connect(window, "show", G_CALLBACK(window_show), NULL);
+	g_signal_connect(window, "show", G_CALLBACK(_shellfront_window_show), NULL);
 
 	vte_terminal_set_size(terminal, config->width, config->height);
 	// when command ends, terminal exits
-	g_signal_connect(terminal, "child-exited", G_CALLBACK(terminal_exit), window);
+	g_signal_connect(terminal, "child-exited", G_CALLBACK(_shellfront_terminal_exit), window);
 	// using the default terminal shell
 	char **argv = (char *[]){ (char *)g_getenv("SHELL"), "-c", config->cmd, NULL };
 	// no timeout for command
@@ -105,6 +105,6 @@ void gtk_activate(GtkApplication *app, struct term_conf *config) {
 	int window_width, window_height;
 	// move position after displaying because the exact size is not determined before displaying
 	gtk_window_get_size(window, &window_width, &window_height);
-	window_gravitate(window_width, window_height, &workarea, config);
+	_shellfront_window_gravitate(window_width, window_height, &workarea, config);
 	gtk_window_move(window, config->x, config->y);
 }

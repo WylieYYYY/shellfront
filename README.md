@@ -49,7 +49,7 @@ ShellFront can customize how a terminal program appear as. Size, title, format a
 
 #### C library reference
 `shellfront_catch_io_from_arg(int argc, char **argv);` allows user to decide how the program will look like by commandline argument.  
-`shellfront_catch_io(int argc, char **argv, struct term_conf config);` lets you to decide how it looks.  
+`shellfront_catch_io(int argc, char **argv, struct shellfront_term_conf config);` lets you to decide how it looks.  
 
 Both functions above return an `err_state`, the setup on the program should handle the result as follow:
 1. If `has_error` of the state evaluate as true, something went wrong, 
@@ -67,7 +67,7 @@ Sample implementation in C:
 #include <unistd.h>
 
 int main(int argc, char **argv) {
-	struct term_conf config = term_conf_default;
+	struct shellfront_term_conf config = shellfront_term_conf_default;
 	config.width = 20;
 	config.height = 6;
 	struct err_state state = shellfront_catch_io(argc, argv, config);
@@ -77,7 +77,7 @@ int main(int argc, char **argv) {
 	}
 	else if (strcmp(state.errmsg, "") != 0) return 0;
 	printf("Hi\n");
-	fprintf(stderr, "Errors");
+	fprintf(stderr, "Errors\n");
 	sleep(1000);
 	return 0;
 }
@@ -88,7 +88,7 @@ The `err_state` struct has following members, listed below: (For default values,
 - has_error
 - errmsg for error message
 ```
-The `term_conf` struct defines `term_conf_default` constant, which has default values for all members, listed below:
+The `shellfront_term_conf` struct defines `shellfront_term_conf_default` constant, which has default values for all members, listed below:
 ```
 Window and terminal properties
 - grav for gravity        : 1 (Top-left)

@@ -6,15 +6,15 @@
 #include <stdlib.h>
 #include <string.h>
 
-extern char *tmpid;
-struct err_state lock_process(int pid);
-struct err_state unlock_process(void);
-void sig_exit(int signo);
+extern char *_shellfront_tmpid;
+struct err_state _shellfront_lock_process(int pid);
+struct err_state _shellfront_unlock_process(void);
+void _shellfront_sig_exit(int signo);
 
 static int test_state;
 int mock_sigaction(int signum, const struct sigaction *act, struct sigaction *oldact) {
 	assert(signum == SIGINT || signum == SIGTERM);
-	assert(act->sa_handler == sig_exit);
+	assert(act->sa_handler == _shellfront_sig_exit);
 	assert(oldact == NULL);
 	test_state = 1;
 }
@@ -38,14 +38,14 @@ int mock_kill(pid_t pid, int sig) {
 }
 
 void test_interface_lock() {
-	// struct err_state lock_process(int pid)
+	// struct err_state _shellfront_lock_process(int pid)
 	// no error
-	tmpid = malloc(29);
-	strcpy(tmpid, "/tmp/shellfront.mock.lock");
-	remove(tmpid);
-	struct err_state state = lock_process(123);
+	_shellfront_tmpid = malloc(29);
+	strcpy(_shellfront_tmpid, "/tmp/shellfront.mock.lock");
+	remove(_shellfront_tmpid);
+	struct err_state state = _shellfront_lock_process(123);
 	assert(!state.has_error);
-	FILE *tmpfp = fopen(tmpid, "r");
+	FILE *tmpfp = fopen(_shellfront_tmpid, "r");
 	assert(tmpfp != NULL);
 	char buf[11];
 	buf[10] = '\0';
@@ -54,39 +54,39 @@ void test_interface_lock() {
 	fclose(tmpfp);
 	assert(test_state == 1);
 	// existing instance error
-	state = lock_process(123);
+	state = _shellfront_lock_process(123);
 	assert(state.has_error);
 	assert(strcmp(state.errmsg, "Existing instance is running, \
 remove -1 flag or '/tmp/shellfront.mock.lock' to unlock") == 0);
-	remove(tmpid);
-	// struct err_state unlock_process(void)
+	remove(_shellfront_tmpid);
+	// struct err_state _shellfront_unlock_process(void)
 	// PID mismatch error
-	tmpid = malloc(29);
-	strcpy(tmpid, "/tmp/shellfront.mock.lock");
-	state = unlock_process();
+	_shellfront_tmpid = malloc(29);
+	strcpy(_shellfront_tmpid, "/tmp/shellfront.mock.lock");
+	state = _shellfront_unlock_process();
 	assert(state.has_error);
 	assert(strcmp(state.errmsg, "PID mismatch in record, use system kill tool") == 0);
 	assert(test_state == 1);
 	// no error
-	tmpid = malloc(29);
-	strcpy(tmpid, "/tmp/shellfront.mock.lock");
-	lock_process(123);
+	_shellfront_tmpid = malloc(29);
+	strcpy(_shellfront_tmpid, "/tmp/shellfront.mock.lock");
+	_shellfront_lock_process(123);
 	test_state = 0;
-	state = unlock_process();
+	state = _shellfront_unlock_process();
 	assert(!state.has_error);
 	assert(test_state == 2);
 	// no instance error
-	tmpid = malloc(23);
-	strcpy(tmpid, "/tmp/shellfront.fake.lock");
-	state = unlock_process();
+	_shellfront_tmpid = malloc(23);
+	strcpy(_shellfront_tmpid, "/tmp/shellfront.fake.lock");
+	state = _shellfront_unlock_process();
 	assert(state.has_error);
 	assert(strcmp(state.errmsg, "No instance of application is running or it is not ran with -1") == 0);
 	// no process error
-	tmpid = malloc(29);
-	strcpy(tmpid, "/tmp/shellfront.mock.lock");
-	lock_process(123);
+	_shellfront_tmpid = malloc(29);
+	strcpy(_shellfront_tmpid, "/tmp/shellfront.mock.lock");
+	_shellfront_lock_process(123);
 	test_state = -1;
-	state = unlock_process();
+	state = _shellfront_unlock_process();
 	assert(state.has_error);
 	assert(strcmp(state.errmsg, "No such process found, use system kill tool") == 0);
 }

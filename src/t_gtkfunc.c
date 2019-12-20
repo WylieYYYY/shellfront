@@ -7,12 +7,12 @@
 
 void test_gtkfunc_helper(void);
 
-void apply_opt(GtkWindow *window, VteTerminal *terminal, struct term_conf *config);
-void window_focus_out(GtkWidget *widget, GdkEvent *event, GtkWindow *window);
-void window_destroy(GtkWindow *window, void *user_data);
-void gtk_activate(GtkApplication *app, struct term_conf *config);
-void window_show(GtkWindow *window, void *user_data);
-void terminal_exit(VteTerminal *terminal, int status, GtkWindow *window);
+void _shellfront_apply_opt(GtkWindow *window, VteTerminal *terminal, struct shellfront_term_conf *config);
+void _shellfront_window_focus_out(GtkWidget *widget, GdkEvent *event, GtkWindow *window);
+void _shellfront_window_destroy(GtkWindow *window, void *user_data);
+void _shellfront_gtk_activate(GtkApplication *app, struct shellfront_term_conf *config);
+void _shellfront_window_show(GtkWindow *window, void *user_data);
+void _shellfront_terminal_exit(VteTerminal *terminal, int status, GtkWindow *window);
 
 static int test_state;
 static GtkWindow *window;
@@ -46,19 +46,19 @@ void mock_gtk_widget_show_all(GtkWidget *widget) {
 	assert(widget == GTK_WIDGET(window));
 	unsigned int sigid = g_signal_lookup("destroy", G_TYPE_FROM_INSTANCE(window));
 	unsigned long sighandler = g_signal_handler_find(window,
-		G_SIGNAL_MATCH_ID | G_SIGNAL_MATCH_FUNC, sigid, 0, NULL, &window_destroy, NULL);
+		G_SIGNAL_MATCH_ID | G_SIGNAL_MATCH_FUNC, sigid, 0, NULL, &_shellfront_window_destroy, NULL);
 	assert(sighandler != 0);
 	assert(!gtk_window_get_resizable(window));
 	// test other config
 	assert(strcmp(gtk_window_get_title(window), "Title") == 0);
 	sigid = g_signal_lookup("show", G_TYPE_FROM_INSTANCE(window));
 	sighandler = g_signal_handler_find(window,
-		G_SIGNAL_MATCH_ID | G_SIGNAL_MATCH_FUNC, sigid, 0, NULL, &window_show, NULL);
+		G_SIGNAL_MATCH_ID | G_SIGNAL_MATCH_FUNC, sigid, 0, NULL, &_shellfront_window_show, NULL);
 	assert(sighandler != 0);
 	sigid = g_signal_lookup("child-exited", G_TYPE_FROM_INSTANCE(test_terminal));
 	sighandler = g_signal_handler_find(test_terminal,
 		G_SIGNAL_MATCH_ID | G_SIGNAL_MATCH_FUNC | G_SIGNAL_MATCH_DATA,
-		sigid, 0, NULL, &terminal_exit, window);
+		sigid, 0, NULL, &_shellfront_terminal_exit, window);
 	assert(sighandler != 0);
 	GList *children = gtk_container_get_children(GTK_CONTAINER(window));
 	assert(VTE_TERMINAL(children->data) == test_terminal);
@@ -69,21 +69,21 @@ void mock_gtk_widget_show_all(GtkWidget *widget) {
 
 void test_gtkfunc() {
 	test_gtkfunc_helper();
-	// void apply_opt(GtkWindow *window, VteTerminal *terminal, struct term_conf *config)
+	// void _shellfront_apply_opt(GtkWindow *window, VteTerminal *terminal, struct term_conf *config)
 	// test ispopup
 	gtk_init(0, NULL);
-	struct term_conf config = term_conf_default;
+	struct shellfront_term_conf config = shellfront_term_conf_default;
 	config.ispopup = 1;
 	window = GTK_WINDOW(gtk_window_new(GTK_WINDOW_TOPLEVEL));
 	test_terminal = VTE_TERMINAL(vte_terminal_new());
-	apply_opt(window, test_terminal, &config);
+	_shellfront_apply_opt(window, test_terminal, &config);
 	assert(!gtk_widget_get_sensitive(GTK_WIDGET(test_terminal)));
 	assert(!gtk_window_get_decorated(window));
 	assert(gtk_window_get_skip_taskbar_hint(window));
 	unsigned int sigid = g_signal_lookup("focus-out-event", G_TYPE_FROM_INSTANCE(window));
 	unsigned long sighandler = g_signal_handler_find(window,
 		G_SIGNAL_MATCH_ID | G_SIGNAL_MATCH_FUNC | G_SIGNAL_MATCH_DATA,
-		sigid, 0, NULL, &window_focus_out, window);
+		sigid, 0, NULL, &_shellfront_window_focus_out, window);
 	assert(sighandler != 0);
 	gtk_widget_destroy(GTK_WIDGET(window));
 	// void gtk_activate(GtkApplication *app, struct term_conf *config)
@@ -93,7 +93,7 @@ void test_gtkfunc() {
 	config.title = "Title";
 	config.cmd = "command";
 	config.grav = 5;
-	gtk_activate(NULL, &config);
+	_shellfront_gtk_activate(NULL, &config);
 	assert(test_state == 3);
 	int x, y;
 	gtk_window_get_position(window, &x, &y);
