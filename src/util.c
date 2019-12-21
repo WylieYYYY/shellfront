@@ -50,6 +50,7 @@ char *sxprintf(char *fmt, ...) {
 	int size = vsnprintf(NULL, 0, fmt, argptr) + 1;
 	char *str = malloc(size);
 	str[size - 1] = '\0';
+	va_end(argptr);
 	va_start(argptr, fmt);
 	vsnprintf(str, size, fmt, argptr);
 	va_end(argptr);
