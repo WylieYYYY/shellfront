@@ -1,4 +1,4 @@
-AC_INIT([shellfront], [0.0], [wylieyyyy@gmail.com])
+AC_INIT([shellfront], [1.0.0], [wylieyyyy@gmail.com])
 AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 AM_PROG_AR
