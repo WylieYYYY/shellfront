@@ -57,6 +57,11 @@ void test_libfunc() {
 	state = shellfront_catch_io_from_arg(3, argv);
 	assert(state.has_error);
 	assert(strcmp(state.errmsg, "This application is intended to run without -c switch") == 0);
+	// test state[0, 0] (--cmd error)
+	argv[1] = "--cmd";
+	state = shellfront_catch_io_from_arg(3, argv);
+	assert(state.has_error);
+	assert(strcmp(state.errmsg, "This application is intended to run without -c switch") == 0);
 	// test state[0, 0] (No error, in ShellFront)
 	argv[1] = "-p";
 	state = shellfront_catch_io_from_arg(3, argv);
