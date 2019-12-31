@@ -4,8 +4,13 @@
 ShellFront is a simple frontend for terminal applications and Linux shell scripts. Making terminal application window customizable by user
 or developer.
 #### Screenshot
-Alsamixer started from right-clicking the clock in tint2.  
-![Example Screenshot](screenshot.png "shellfront -Tips 30x14 -g 3 -l 0,0 -c 'alsamixer'")
+Alsamixer started from right-clicking the clock in tint2, demonstrates compatibility with Ncurses.  
+`shellfront -Tips 30x14 -g 3 -c 'alsamixer'`
+![Example Alsamixer Screenshot](screenshot-alsa.png "Example Alsamixer Screenshot")
+Calendar popup with various tips and tricks from the [tips](https://gitlab.com/WylieYYYY/shellfront#tips) section.  
+`shellfront -Tps 21x8 -g 3 -c 'echo -n "$(tput bold; unbuffer cal | lolcat -ft -)"; read'`
+![Example Calendar Screenshot](screenshot-cal.png "Example Calendar Screenshot")
+
 ### Features:
 - Undecorated popup and decorated window style;
 - Customise command to toggle, activate, or deactivate;
