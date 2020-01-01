@@ -56,7 +56,8 @@ struct err_state shellfront_catch_io_from_arg(int argc, char **argv) {
 	bool use_shellfront = true;
 	for (int i = 1; i < argc; i++) {
 		// this function is intended to catch itself as command
-		if (strcmp(argv[i], "-c") == 0 || strcmp(argv[i], "--cmd") == 0) {
+		if (strcmp(argv[i], "-c") == 0 || (strncmp(argv[i], "--cmd", 5) == 0 &&
+			(argv[i][5] == '\0' || argv[i][5] == '='))) {
 			return define_error("This application is intended to run without -c switch");
 		}
 		if (strcmp(argv[i], "--no-shellfront") == 0) use_shellfront = false;
