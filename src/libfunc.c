@@ -79,7 +79,7 @@ struct err_state shellfront_catch_io(int argc, char **argv, struct shellfront_te
 		if (strcmp(argv[i], "--no-shellfront") == 0) use_shellfront = false;
 	}
 	// this time argv is ignored except the "--no-shellfront" flag, so if there is "-c" in argv, it doesn't matter
-	if (config.cmd != NULL) return define_error("ShellFront integration does not require cmd");
+	if (config.cmd[0] != '\0') return define_error("ShellFront integration does not require cmd");
 	if (use_shellfront) {
 		// return the state of the process
 		return _SHELLFRONT_START_PROCESS(argv[0], config, ttyname(STDIN_FILENO));

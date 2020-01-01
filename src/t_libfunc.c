@@ -84,7 +84,7 @@ void test_libfunc() {
 	assert(strcmp(state.errmsg, "Parse error") == 0);
 	// struct err_state shellfront_catch_io(int argc, char **argv, struct shellfront_term_conf config)
 	// test state[0, 0] (No error)
-	config.cmd = NULL;
+	config.cmd = "";
 	state = shellfront_catch_io(3, argv, config);
 	assert(!state.has_error);
 	assert(strcmp(state.errmsg, "Original process, please end") == 0);
@@ -94,7 +94,7 @@ void test_libfunc() {
 	assert(state.has_error);
 	assert(strcmp(state.errmsg, "ShellFront integration does not require cmd") == 0);
 	// test state[1, 0] (No error, in ShellFront)
-	config.cmd = NULL;
+	config.cmd = "";
 	argv[2] = "--no-shellfront";
 	state = shellfront_catch_io(3, argv, config);
 	assert(!state.has_error);
