@@ -14,19 +14,26 @@ Calendar popup with various tips and tricks from the [tips](https://gitlab.com/W
 ### Features:
 - Undecorated popup and decorated window style;
 - Customise command to toggle, activate, or deactivate;
-- Uses GTK3 and VTE, portable between linux computers;
+- Uses GTK3 and VTE, portable between Linux computers;
 - Integrate to other applications as C library;
 - Simple and intuitive, one struct for configuration and can be added in under 10 lines of code;
 
 ### Setup
-1. Download the compressed package from [here](https://gitlab.com/WylieYYYY/shellfront/-/jobs/artifacts/master/download?job=build-pkg) 
-   and extract to a directory with a name without whitespaces. If the `pipeline` indicator shows `running`, please wait for it to complete, 
-   a new build is coming out. Then, install the following packages.
+1. Download the `build ready version` from the `releases` tab on the side
+   and extract to a directory with a name without whitespaces. Then, install the following packages.
 2. Install the following packages:  
    For ArchLinux: `gtk3 vte3`  
    For Ubuntu: `libgtk-3-dev libvte-2.91-dev`  
    Other distros should also install GTK and VTE development package from repositories or build from source.
-3. ShellFront can then be installed by using `./configure && make` and `sudo make install`
+3. Change to the ShellFront directory by using `cd`
+4. ShellFront can then be installed by using `./configure && make` and `sudo make install`
+
+#### Testing (Not required for normal use)
+> The test is automatically run with each push, so it is not required to run manually.
+
+4. Finish step 3 from setup above, and install the `gcovr` package.
+5. Build with `./configure --enable-unit-tests && make` and run it by using `SHELL='/bin/bash';src/test`.
+6. Check the result with `gcovr -r src -e 'src/t_*'` (append optional `-b` flag for branch coverage).
 
 The package can be uninstalled by using `sudo make uninstall` in the same directory.
 ### Using directly in terminal
@@ -46,8 +53,10 @@ y
 If the gravity is centered in any axis, the corresponding x or y value of the loc variable will be ignored.  
 A placeholder of any non-negative number should be used in the loc variable (Number appended by letters are also accepted).
 #### Tips
-To hide the console cursor, perform `printf` or `echo -n` spaces until out of bound, or by using `echo -n "$(command)[SPACES]"` on last output command.  
-For the latter method, if colourised output from pipe is required, `unbuffer` from package `expect` can be appended in front of the command.
+- To hide the console cursor, perform `printf` or `echo -n` spaces until out of bound, or by using `echo -n "$(command)[SPACES]"` on last output command.
+- If colourised output from pipe is required, `unbuffer` from package `expect` can be appended in front of the command.
+- If the application is not interactive, `read` can be used instead of `sleep infinity` to make the window stay.
+
 ### Using as library within C program
 ShellFront can customize how a terminal program appear as. Size, title, format and etc. can be fixed for maximum user experience.  
 > `stderr` will still be directed to the old terminal so that error will not appear to normal users.
@@ -83,7 +92,7 @@ int main(int argc, char **argv) {
 	else if (strcmp(state.errmsg, "") != 0) return 0;
 	printf("Hi\n");
 	fprintf(stderr, "Errors\n");
-	sleep(1000);
+	pause();
 	return 0;
 }
 ```
@@ -101,7 +110,7 @@ Window and terminal properties
 - width                   : 80
 - height                  : 24
 - title                   : ""
-- cmd for target command  : "echo 'Hello World!'; read" (In terminal) or "" (In C library)
+- cmd for target command  : "echo 'Hello World!'; read" (In terminal) or "" (In C library) [This is not used by 'catch_io' functions]
 - interactive for input   : false or 0
 - ispopup                 : false or 0
 - once for single instance: false or 0
