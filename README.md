@@ -8,7 +8,7 @@ Alsamixer started from right-clicking the clock in tint2, demonstrates compatibi
 `shellfront -Tips 30x14 -g 3 -c 'alsamixer'`  
 ![Example Alsamixer Screenshot](screenshot-alsa.png "Example Alsamixer Screenshot")  
 Calendar popup with various tips and tricks from the [tips](https://gitlab.com/WylieYYYY/shellfront#tips) section.  
-`shellfront -Tps 21x8 -g 3 -c 'echo -n "$(tput bold; unbuffer cal | lolcat -ft -)"; read'`  
+`shellfront -Tps 21x8 -g 3 -c 'echo -n "$(tput bold; unbuffer cal | lolcat -ft -) "; read'`  
 ![Example Calendar Screenshot](screenshot-cal.png "Example Calendar Screenshot")  
 
 ### Features:
@@ -32,7 +32,7 @@ Calendar popup with various tips and tricks from the [tips](https://gitlab.com/W
 > The test is automatically run with each push, so it is not required to run manually.
 
 4. Finish step 3 from setup above, and install the `gcovr` package.
-5. Build with `./configure --enable-unit-tests && make` and run it by using `SHELL='/bin/bash';src/test`.
+5. Build with `./configure --enable-unit-tests && make` and run it by using `SHELL='/bin/bash';src/test`
 6. Check the result with `gcovr -r src -e 'src/t_*'` (append optional `-b` flag for branch coverage).
 
 The package can be uninstalled by using `sudo make uninstall` in the same directory.
