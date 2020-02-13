@@ -6,7 +6,6 @@
 #include <string.h>
 
 extern char *_shellfront_tmpid;
-void test_interface_parse(void);
 void test_interface_init(void);
 void test_interface_lock(void);
 
@@ -19,7 +18,6 @@ void mock_exit(int status) {
 }
 
 void test_interface() {
-	test_interface_parse();
 	test_interface_init();
 	test_interface_lock();
 	// void sig_exit(int signo)

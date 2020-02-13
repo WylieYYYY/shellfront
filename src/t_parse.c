@@ -7,7 +7,7 @@
 struct err_state _shellfront_validate_opt(char *locstr, char *sizestr, struct shellfront_term_conf *config, GError *gtkerr);
 struct err_state _shellfront_parse(int argc, char **argv, struct shellfront_term_conf *config);
 
-void test_interface_parse() {
+void test_parse() {
 	// struct err_state _shellfront_validate_opt(char *locstr, char *sizestr, struct shellfront_term_conf *config)
 	// parse loc error
 	struct shellfront_term_conf config = shellfront_term_conf_default;
