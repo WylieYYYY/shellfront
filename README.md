@@ -2,7 +2,8 @@
 [![pipeline status](https://gitlab.com/WylieYYYY/shellfront/badges/master/pipeline.svg)](https://gitlab.com/WylieYYYY/shellfront/commits/master)
 [![coverage report](https://gitlab.com/WylieYYYY/shellfront/badges/master/coverage.svg)](https://gitlab.com/WylieYYYY/shellfront/commits/master)  
 ShellFront is a simple frontend for terminal applications and Linux shell scripts. Making terminal application window customizable by user
-or developer.
+or developer.   
+For similar function in Microsoft Windows, check out [ConEmu](https://conemu.github.io)!
 #### Screenshot
 Alsamixer started from right-clicking the clock in tint2, demonstrates compatibility with Ncurses.  
 `shellfront -Tips 30x14 -g 3 -c 'alsamixer'`  
@@ -73,7 +74,7 @@ Both functions above return an `err_state`, the setup on the program should hand
    - If `errmsg` is not `""`, this is currently in the original process, end the program without executing the main logic.
 
 Sample implementation in C:
-```
+```c
 #include "shellfront.h"
 
 #include <stdio.h>
