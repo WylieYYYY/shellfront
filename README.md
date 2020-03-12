@@ -32,9 +32,13 @@ Calendar popup with various tips and tricks from the [tips](https://gitlab.com/W
 #### Testing (Not required for normal use)
 > The test is automatically run with each push, so it is not required to run manually.
 
-4. Finish step 3 from setup above, and install the `gcovr` package.
-5. Build with `./configure --enable-unit-tests && make` and run it by using `SHELL='/bin/bash';src/test`
-6. Check the result with `gcovr -r src -e 'src/t_*'` (append optional `-b` flag for branch coverage).
+If Docker is available, image can be found at `registry.gitlab.com/wylieyyyy/shellfront:latest`,
+so the testing environment is sandboxed. Then start from running the command in step 5.
+
+4. Finish step 3 from setup above, install `gcovr`.
+5. Install `xvfb` and run `Xvfb :1 -screen 0 1600x1200x24 & export DISPLAY=:1` if no GUI is available.
+6. Build with `./configure --enable-unit-tests && make` and run it by using `SHELL='/bin/bash';src/test`
+7. Check the result with `gcovr -r src -e 'src/t_*'` (append optional `-b` flag for branch coverage).
 
 The package can be uninstalled by using `sudo make uninstall` in the same directory.
 ### Using directly in terminal
