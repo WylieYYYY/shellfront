@@ -41,8 +41,8 @@ int _shellfront_parse_loc_str(char *loc, int *x, int *y) {
 unsigned long djb_hash(char *str) {
 	unsigned long hash = 5381;
 	unsigned char ch;
-    while ((ch = (unsigned char)*str++)) hash = ((hash << 5) + hash) + ch;
-    return hash;
+	while ((ch = (unsigned char)*str++)) hash = ((hash << 5) + hash) + ch;
+	return hash;
 }
 char *sxprintf(char *fmt, ...) {
 	va_list argptr;
