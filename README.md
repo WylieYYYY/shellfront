@@ -93,6 +93,7 @@ int main(int argc, char **argv) {
 	struct shellfront_term_conf config = shellfront_term_conf_default;
 	config.width = 20;
 	config.height = 6;
+	config.desc = "- sample implementation for ShellFront";
 	struct err_state state = shellfront_catch(argc, argv, "gl", NULL, config);
 	if (state.has_error) {
 		fprintf(stderr, state.errmsg);
@@ -119,12 +120,13 @@ Window and terminal properties
 - width                   : 80
 - height                  : 24
 - title                   : ""
-- cmd for target command  : "echo 'Hello World!'; read" (In terminal) or "" (In C library) [This is not used by 'catch_io' functions]
+- cmd for target command  : "echo 'Hello World!'; read" (In terminal) or "" (In C library) [This is not used by 'catch' function]
 - interactive for input   : false or 0
 - ispopup                 : false or 0
 - once for single instance: false or 0
 
 Invoke behaviours switch
 - toggle when invoked     : false or 0
-- killopt for killing     : false or 0
+- kill                    : false or 0
+- desc for help menu      : "- simple frontend for shell scripts" (In terminal, immutable) or "" (In C library)
 ```

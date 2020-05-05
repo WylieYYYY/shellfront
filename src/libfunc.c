@@ -32,7 +32,8 @@ const struct shellfront_term_conf shellfront_term_conf_default = {
 	.ispopup = 0,
 	.once = 0,
 	.toggle = 0,
-	.killopt = 0
+	.kill = 0,
+	.desc = ""
 };
 
 struct err_state _shellfront_start_process(char *prog_name, struct shellfront_term_conf *config, char *current_tty) {
@@ -47,6 +48,7 @@ struct err_state _shellfront_start_process(char *prog_name, struct shellfront_te
 
 struct err_state shellfront_interpret(int argc, char **argv) {
 	struct shellfront_term_conf config = shellfront_term_conf_default;
+	config.desc = "- simple frontend for shell scripts";
 	struct err_state state = _shellfront_parse(argc, argv, "glstcip1Tk", NULL, &config);
 	// parse error or continue execution
 	if (state.has_error) return state;

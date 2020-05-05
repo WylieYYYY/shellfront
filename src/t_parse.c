@@ -54,12 +54,12 @@ void test_parse() {
 	assert(!state.has_error);
 	assert(config.once);
 	// toggle killopt conflict error
-	config.killopt = 1;
+	config.kill = 1;
 	state = _shellfront_validate_opt("1,2", "300x200", &config, NULL);
 	assert(state.has_error);
 	assert(strcmp(state.errmsg, "Conflicting arguments, see README for usage") == 0);
 	// GTK error
-	config.killopt = 0;
+	config.kill = 0;
 	GError gtkerr = { .code = 1, .message = "GTK error" };
 	state = _shellfront_validate_opt("1,2", "300x200", &config, &gtkerr);
 	assert(state.has_error);
@@ -82,12 +82,12 @@ void test_parse() {
 		{
 			.long_name = "dummy1",
 			.arg = G_OPTION_ARG_NONE,
-			.arg_data = &(config.killopt),
+			.arg_data = &(config.kill),
 			.description = "Dummy option"
 		}, {
 			.long_name = "dummy2",
 			.arg = G_OPTION_ARG_NONE,
-			.arg_data = &(config.killopt),
+			.arg_data = &(config.kill),
 			.description = "Dummy option"
 		}, { 0 }
 	};
@@ -108,7 +108,7 @@ void test_parse() {
 	char **argv = (char *[]) { "shellfront", "-1iTg", "3", "-l", "1,2", "-s", "10x20", "-c", "command", "-t", "Title" };
 	state = _shellfront_parse(11, argv, "glstcip1Tk", NULL, &config);
 	assert(!state.has_error);
-	assert(config.once && config.interactive && config.toggle && !config.killopt && !config.ispopup);
+	assert(config.once && config.interactive && config.toggle && !config.kill && !config.ispopup);
 	assert(config.grav == 3);
 	assert(config.x == 1 && config.y == 2);
 	assert(config.width == 10 && config.height == 20);

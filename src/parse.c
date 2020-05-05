@@ -16,7 +16,7 @@ struct err_state _shellfront_validate_opt(char *locstr, char *sizestr, struct sh
 	if (config->grav < 1 || config->grav > 9) {
 		return define_error("Incorrect gravity range, see README for usage");
 	}
-	if ((config->toggle && config->killopt) || (strcmp(config->title, "") && config->ispopup)) {
+	if ((config->toggle && config->kill) || (strcmp(config->title, "") && config->ispopup)) {
 		return define_error("Conflicting arguments, see README for usage");
 	}
 	// implied flag
@@ -91,10 +91,10 @@ GOptionEntry *_shellfront_construct_opt(const char *builtin, GOptionEntry *custo
 			.arg_data = &(config->toggle),
 			.description = "Toggle single instance application, implies -1"
 		}, {
-			.long_name = "killopt",
+			.long_name = "kill",
 			.short_name = 'k',
 			.arg = G_OPTION_ARG_NONE,
-			.arg_data = &(config->killopt),
+			.arg_data = &(config->kill),
 			.description = "Kill a single instance application according to command"
 		}
 	};
@@ -136,7 +136,7 @@ struct err_state _shellfront_parse(int argc, char **argv, char *builtin_opt,
 
 	GError *gtkerr = NULL;
 	// description and register arguments
-	gtk_init_with_args(&argc, &argv, "- simple frontend for shell scripts", options, NULL, &gtkerr);
+	gtk_init_with_args(&argc, &argv, config->desc, options, NULL, &gtkerr);
 	free(options);
 	struct err_state state = _shellfront_validate_opt(locstr, sizestr, config, gtkerr);
 	g_clear_error(&gtkerr);

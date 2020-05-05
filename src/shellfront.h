@@ -34,7 +34,9 @@ struct shellfront_term_conf {
 	// kill single instance application if running, start one if not
 	int toggle;
 	// kill single instance application
-	int killopt;
+	int kill;
+	// application description in help menu
+	char *desc;
 };
 // constant struct with default member values
 const struct shellfront_term_conf shellfront_term_conf_default;

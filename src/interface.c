@@ -96,7 +96,7 @@ struct err_state _shellfront_initialize(struct shellfront_term_conf *config) {
 	// get lock file name
 	_shellfront_tmpid = sxprintf("/tmp/shellfront.%lu.lock", djb_hash(config->cmd));
 	// if it is killing by flag or toggle
-	if (config->killopt || (config->toggle && access(_shellfront_tmpid, F_OK) != -1)) return _SHELLFRONT_UNLOCK_PROCESS();
+	if (config->kill || (config->toggle && access(_shellfront_tmpid, F_OK) != -1)) return _SHELLFRONT_UNLOCK_PROCESS();
 	
 	// get this process's process ID
 	int pid = getpid();

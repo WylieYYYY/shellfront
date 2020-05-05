@@ -55,13 +55,13 @@ void test_interface_init() {
 	run_test_state = false;
 	state = _shellfront_initialize(&config);
 	assert(!state.has_error);
-	// test killopt
-	config.killopt = true;
+	// test kill
+	config.kill = true;
 	state = _shellfront_initialize(&config);
 	assert(!state.has_error);
 	assert(strcmp(state.errmsg, "Unlocked process") == 0);
 	// test once (lock error)
-	config.killopt = false;
+	config.kill = false;
 	config.once = true;
 	state = _shellfront_initialize(&config);
 	assert(state.has_error);
