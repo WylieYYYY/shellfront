@@ -3,7 +3,9 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif 
+#endif
+
+#include <gtk/gtk.h>
 
 // error structure
 struct err_state {
@@ -38,10 +40,9 @@ struct shellfront_term_conf {
 const struct shellfront_term_conf shellfront_term_conf_default;
 // passing arguments and use shellfront just like invoking in terminal
 struct err_state shellfront_interpret(int argc, char **argv);
-// let user to choose how the application is displayed
-struct err_state shellfront_catch_io_from_arg(int argc, char **argv);
-// you decide how the application is presented to the user
-struct err_state shellfront_catch_io(int argc, char **argv, struct shellfront_term_conf config);
+// decides how the terminal will look like by user and/or program
+struct err_state shellfront_catch(int argc, char **argv, char *accepted_opt,
+	GOptionEntry *custom_opt, struct shellfront_term_conf default_config);
 
 #ifdef __cplusplus
 }

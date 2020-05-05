@@ -29,7 +29,7 @@ Calendar popup with various tips and tricks from the [tips](https://gitlab.com/W
 3. Change to the ShellFront directory by using `cd`
 4. ShellFront can then be installed by using `./configure && make` and `sudo make install`
 
-#### Testing (Not required for normal use)
+#### Testing (Not required for using ShellFront)
 > The test is automatically run with each push, so it is not required to run manually.
 
 If Docker is available, image can be found at `registry.gitlab.com/wylieyyyy/shellfront:latest`,
@@ -67,10 +67,14 @@ ShellFront can customize how a terminal program appear as. Size, title, format a
 > `stderr` will still be directed to the old terminal so that error will not appear to normal users.
 
 #### C library reference
-`shellfront_catch_io_from_arg(int argc, char **argv);` allows user to decide how the program will look like by commandline argument.  
-`shellfront_catch_io(int argc, char **argv, struct shellfront_term_conf config);` lets you to decide how it looks.  
+`shellfront_catch(int argc, char **argv, char *accepted_opt, GOptionEntry *custom_opt, struct shellfront_term_conf default_config);` decides how the terminal will look like by user and/or program, parameters' explainations listed below:
+```
+- accepted_opt: A string of ShellFront options' short names which are allowed to be overriden by user, can be "" if user should not be able to modify ShellFront configuration
+- custom_opt: Custom options for parent application, a NULL-terminated array of GOptionEntry, can be NULL if no custom options are needed
+- default_config: The default configuration to be overriden by commandline arguments
+```
 
-Both functions above return an `err_state`, the setup on the program should handle the result as follow:
+The function above returns an `err_state`, the setup on the program should handle the result as follow:
 1. If `has_error` of the state evaluate as true, something went wrong, 
    do standard error handling with `errmsg`, end the program without executing the main logic.
 2. If `has_error` of the state evaluate as false:
@@ -89,7 +93,7 @@ int main(int argc, char **argv) {
 	struct shellfront_term_conf config = shellfront_term_conf_default;
 	config.width = 20;
 	config.height = 6;
-	struct err_state state = shellfront_catch_io(argc, argv, config);
+	struct err_state state = shellfront_catch(argc, argv, "gl", NULL, config);
 	if (state.has_error) {
 		fprintf(stderr, state.errmsg);
 		return state.has_error;

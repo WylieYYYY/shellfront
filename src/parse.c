@@ -28,34 +28,28 @@ struct err_state _shellfront_validate_opt(char *locstr, char *sizestr, struct sh
 	return state;
 }
 
-struct err_state _shellfront_parse(int argc, char **argv, struct shellfront_term_conf *config) {
-	// default configurations
-	*config = shellfront_term_conf_default;
-	config->cmd = "echo 'Hello World!'; read";
-	char *locstr = "0,0";
-	char *sizestr = "80x24";
-	
-	// options and help messages
-	GOptionEntry options[] = {
+GOptionEntry *_shellfront_construct_opt(const char *builtin, GOptionEntry *custom,
+	struct shellfront_term_conf *config, char **locstr, char **sizestr) {
+	GOptionEntry builtin_entries[] = {
 		{
 			.long_name = "grav",
 			.short_name = 'g',
 			.arg = G_OPTION_ARG_INT,
 			.arg_data = &(config->grav),
 			.arg_description = "ENUM",
-			.description = "Set gravity for window, see README for detail"
+			.description = "Set gravity for window, 1 = Top-left, 9 = Bottom-right"
 		}, {
 			.long_name = "loc",
 			.short_name = 'l',
 			.arg = G_OPTION_ARG_STRING,
-			.arg_data = &locstr,
+			.arg_data = locstr,
 			.arg_description = "X,Y",
 			.description = "Set the default screen location"
 		}, {
 			.long_name = "size",
 			.short_name = 's',
 			.arg = G_OPTION_ARG_STRING,
-			.arg_data = &sizestr,
+			.arg_data = sizestr,
 			.arg_description = "XxY",
 			.description = "Set the size"
 		}, {
@@ -102,12 +96,48 @@ struct err_state _shellfront_parse(int argc, char **argv, struct shellfront_term
 			.arg = G_OPTION_ARG_NONE,
 			.arg_data = &(config->killopt),
 			.description = "Kill a single instance application according to command"
-		}, { 0 }
+		}
 	};
+
+	const int option_size = sizeof (GOptionEntry);
+	int custom_count = 0;
+	const GOptionEntry end_block = { 0 };
+	// count custom options and copy them and end block to the bottom half of memory
+	while (custom != NULL && memcmp(&custom[custom_count], &end_block, option_size) != 0) {
+		custom_count++;
+	}
+	GOptionEntry *options = malloc((strlen(builtin) + custom_count + 1) * option_size);
+	if (custom == NULL) {
+		options[strlen(builtin)] = (GOptionEntry){ 0 };
+	} else {
+		memcpy(&options[strlen(builtin)], custom, (custom_count + 1) * option_size);
+	}
+
+	const int builtin_count = sizeof builtin_entries / option_size;
+	// current allocated index to place builtin option
+	int alloc_index = 0;
+	for (int builtin_index = 0; builtin_index < builtin_count; builtin_index++) {
+		// no target short name found, pointer moved to NULL
+		if (strchr(builtin, builtin_entries[builtin_index].short_name) == NULL) continue;
+		options[alloc_index++] = builtin_entries[builtin_index];
+	}
+	return options;
+}
+
+struct err_state _shellfront_parse(int argc, char **argv, char *builtin_opt,
+	GOptionEntry *custom_opt, struct shellfront_term_conf *config) {
+	// default configurations
+	config->cmd = "echo 'Hello World!'; read";
+	char *locstr = "0,0";
+	char *sizestr = "80x24";
+
+	GOptionEntry *options =
+		_shellfront_construct_opt(builtin_opt, custom_opt, config, &locstr, &sizestr);
 
 	GError *gtkerr = NULL;
 	// description and register arguments
 	gtk_init_with_args(&argc, &argv, "- simple frontend for shell scripts", options, NULL, &gtkerr);
+	free(options);
 	struct err_state state = _shellfront_validate_opt(locstr, sizestr, config, gtkerr);
 	g_clear_error(&gtkerr);
 

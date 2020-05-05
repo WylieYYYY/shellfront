@@ -25,10 +25,6 @@ void test_interface() {
 	strcpy(_shellfront_tmpid, "/tmp/shellfront.123.mockproc");
 	_shellfront_sig_exit(1);
 	FILE *check_lock = fopen("/tmp/shellfront.123.mockproc", "r");
-	if (check_lock != NULL) {
-		fclose(check_lock);
-		remove("/tmp/shellfront.123.mockproc");
-	}
 	assert(check_lock == NULL);
 	assert(test_state == 1);
 }

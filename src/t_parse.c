@@ -5,7 +5,10 @@
 #include <string.h>
 
 struct err_state _shellfront_validate_opt(char *locstr, char *sizestr, struct shellfront_term_conf *config, GError *gtkerr);
-struct err_state _shellfront_parse(int argc, char **argv, struct shellfront_term_conf *config);
+GOptionEntry *_shellfront_construct_opt(const char *builtin, GOptionEntry *custom,
+	struct shellfront_term_conf *config, char **locstr, char **sizestr);
+struct err_state _shellfront_parse(int argc, char **argv, char *builtin_opt,
+	GOptionEntry *custom_opt, struct shellfront_term_conf *config);
 
 void test_parse() {
 	// struct err_state _shellfront_validate_opt(char *locstr, char *sizestr, struct shellfront_term_conf *config)
@@ -61,11 +64,49 @@ void test_parse() {
 	state = _shellfront_validate_opt("1,2", "300x200", &config, &gtkerr);
 	assert(state.has_error);
 	assert(strcmp(state.errmsg, "GTK error") == 0);
+	// GOptionEntry *_shellfront_construct_opt(const char *builtin, GOptionEntry *custom,
+	//     struct shellfront_term_conf *config, char **locstr, char **sizestr)
+	// no builtin, no custom
+	const int option_size = sizeof (GOptionEntry);
+	const GOptionEntry end_block = { 0 };
+	GOptionEntry *options = _shellfront_construct_opt("", NULL, &config, &config.title, &config.title);
+	assert(memcmp(&options[0], &end_block, option_size) == 0);
+	free(options);
+	// all builtin, no custom
+	options = _shellfront_construct_opt("kg", NULL, &config, &config.title, &config.title);
+	assert(memcmp(&options[2], &end_block, option_size) == 0);
+	assert(options[0].short_name == 'g' && options[1].short_name == 'k');
+	free(options);
+	// no builtin, all custom
+	GOptionEntry custom[] = {
+		{
+			.long_name = "dummy1",
+			.arg = G_OPTION_ARG_NONE,
+			.arg_data = &(config.killopt),
+			.description = "Dummy option"
+		}, {
+			.long_name = "dummy2",
+			.arg = G_OPTION_ARG_NONE,
+			.arg_data = &(config.killopt),
+			.description = "Dummy option"
+		}, { 0 }
+	};
+	options = _shellfront_construct_opt("", custom, &config, &config.title, &config.title);
+	assert(memcmp(&options[2], &end_block, option_size) == 0);
+	assert(strcmp(options[0].long_name, "dummy1") == 0);
+	assert(strcmp(options[1].long_name, "dummy2") == 0);
+	free(options);
+	// builtin, custom
+	options = _shellfront_construct_opt("kg", custom, &config, &config.title, &config.title);
+	assert(memcmp(&options[4], &end_block, option_size) == 0);
+	assert(options[0].short_name == 'g' && options[1].short_name == 'k');
+	assert(strcmp(options[2].long_name, "dummy1") == 0);
+	assert(strcmp(options[3].long_name, "dummy2") == 0);
 	// struct err_state _shellfront_parse(int argc, char **argv, struct shellfront_term_conf *config)
 	// no error (all flags except ispopup and killopt)
 	config.toggle = 0;
 	char **argv = (char *[]) { "shellfront", "-1iTg", "3", "-l", "1,2", "-s", "10x20", "-c", "command", "-t", "Title" };
-	state = _shellfront_parse(11, argv, &config);
+	state = _shellfront_parse(11, argv, "glstcip1Tk", NULL, &config);
 	assert(!state.has_error);
 	assert(config.once && config.interactive && config.toggle && !config.killopt && !config.ispopup);
 	assert(config.grav == 3);

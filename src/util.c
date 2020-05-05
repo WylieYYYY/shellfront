@@ -15,7 +15,7 @@ struct err_state define_error(char *msg) {
 int _shellfront_parse_size_str(char *size, long *x, long *y) {
 	char *cp = strdup(size);
 	char *x_str = strsep(&cp, "x");
-	// no delimiter, pointer moved to the end
+	// no delimiter, pointer moved to NULL
 	if (cp == NULL) return 0;
 	// if entire string is a number, pointer moved to the end
 	char *strtol_end;

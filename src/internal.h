@@ -30,6 +30,7 @@ void _shellfront_sig_exit(int signo);
 // start the GUI with configuration struct
 struct err_state _shellfront_initialize(struct shellfront_term_conf *config);
 // accept and parse flags into configuration struct
-struct err_state _shellfront_parse(int argc, char **argv, struct shellfront_term_conf *parsed_conf);
+struct err_state _shellfront_parse(int argc, char **argv, char *builtin_opt,
+	GOptionEntry *custom_opt, struct shellfront_term_conf *parsed_conf);
 
 #endif
