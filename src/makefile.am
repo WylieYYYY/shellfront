@@ -1,7 +1,7 @@
 include_HEADERS = shellfront.h
 
 if UNIT_TEST
-GCOVR_CFLAGS = -fprofile-arcs -ftest-coverage -fPIC -O0 -DUNIT_TEST
+GCOVR_CFLAGS = -g -fprofile-arcs -ftest-coverage -fPIC -O0 -DUNIT_TEST
 else
 GCOVR_CFLAGS = -O2
 endif
