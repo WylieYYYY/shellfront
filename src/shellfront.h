@@ -39,7 +39,7 @@ struct shellfront_term_conf {
 	char *desc;
 };
 // constant struct with default member values
-const struct shellfront_term_conf shellfront_term_conf_default;
+extern const struct shellfront_term_conf shellfront_term_conf_default;
 // passing arguments and use shellfront just like invoking in terminal
 struct err_state shellfront_interpret(int argc, char **argv);
 // decides how the terminal will look like by user and/or program

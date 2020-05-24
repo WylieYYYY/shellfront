@@ -114,5 +114,4 @@ void test_parse() {
 	assert(config.width == 10 && config.height == 20);
 	assert(strcmp(config.cmd, "command") == 0);
 	assert(strcmp(config.title, "Title") == 0);
-	gtk_window_new(GTK_WINDOW_TOPLEVEL);
 }

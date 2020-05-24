@@ -40,7 +40,7 @@ int mock_kill(pid_t pid, int sig) {
 void test_interface_lock() {
 	// struct err_state _shellfront_lock_process(int pid)
 	// no error
-	_shellfront_tmpid = malloc(29);
+	_shellfront_tmpid = malloc(26);
 	strcpy(_shellfront_tmpid, "/tmp/shellfront.mock.lock");
 	remove(_shellfront_tmpid);
 	struct err_state state = _shellfront_lock_process(123);
@@ -61,14 +61,14 @@ remove -1 flag or '/tmp/shellfront.mock.lock' to unlock") == 0);
 	remove(_shellfront_tmpid);
 	// struct err_state _shellfront_unlock_process(void)
 	// PID mismatch error
-	_shellfront_tmpid = malloc(29);
+	_shellfront_tmpid = malloc(26);
 	strcpy(_shellfront_tmpid, "/tmp/shellfront.mock.lock");
 	state = _shellfront_unlock_process();
 	assert(state.has_error);
 	assert(strcmp(state.errmsg, "PID mismatch in record, use system kill tool") == 0);
 	assert(test_state == 1);
 	// no error
-	_shellfront_tmpid = malloc(29);
+	_shellfront_tmpid = malloc(26);
 	strcpy(_shellfront_tmpid, "/tmp/shellfront.mock.lock");
 	_shellfront_lock_process(123);
 	test_state = 0;
@@ -76,13 +76,13 @@ remove -1 flag or '/tmp/shellfront.mock.lock' to unlock") == 0);
 	assert(!state.has_error);
 	assert(test_state == 2);
 	// no instance error
-	_shellfront_tmpid = malloc(23);
+	_shellfront_tmpid = malloc(26);
 	strcpy(_shellfront_tmpid, "/tmp/shellfront.fake.lock");
 	state = _shellfront_unlock_process();
 	assert(state.has_error);
 	assert(strcmp(state.errmsg, "No instance of application is running or it is not ran with -1") == 0);
 	// no process error
-	_shellfront_tmpid = malloc(29);
+	_shellfront_tmpid = malloc(26);
 	strcpy(_shellfront_tmpid, "/tmp/shellfront.mock.lock");
 	_shellfront_lock_process(123);
 	test_state = -1;
