@@ -37,7 +37,7 @@ void test_parse() {
 	assert(strcmp(state.errmsg, "Incorrect gravity range, see README for usage") == 0);
 	// test once implied by ispopup
 	config.grav = 1;
-	config.ispopup = 1;
+	config.popup = 1;
 	state = _shellfront_validate_opt("1,2", "300x200", &config, NULL);
 	assert(!state.has_error);
 	assert(config.once);
@@ -48,7 +48,7 @@ void test_parse() {
 	assert(strcmp(state.errmsg, "Conflicting arguments, see README for usage") == 0);
 	// test once implied by toggle
 	config.once = 0;
-	config.ispopup = 0;
+	config.popup = 0;
 	config.toggle = 1;
 	state = _shellfront_validate_opt("1,2", "300x200", &config, NULL);
 	assert(!state.has_error);
@@ -103,15 +103,17 @@ void test_parse() {
 	assert(strcmp(options[2].long_name, "dummy1") == 0);
 	assert(strcmp(options[3].long_name, "dummy2") == 0);
 	// struct err_state _shellfront_parse(int argc, char **argv, struct shellfront_term_conf *config)
-	// no error (all flags except ispopup and killopt)
+	// no error (all flags except ispopup and killopt, disallow icon)
 	config.toggle = 0;
-	char **argv = (char *[]) { "shellfront", "-1iTg", "3", "-l", "1,2", "-s", "10x20", "-c", "command", "-t", "Title" };
+	char **argv = (char *[]) { "shellfront", "-1iTg", "3", "-l",
+		"1,2", "-s", "10x20", "-c", "command", "--title", "Title", "-I", "icon" };
 	state = _shellfront_parse(11, argv, "glstcip1Tk", NULL, &config);
 	assert(!state.has_error);
-	assert(config.once && config.interactive && config.toggle && !config.kill && !config.ispopup);
+	assert(config.once && config.interactive && config.toggle && !config.kill && !config.popup);
 	assert(config.grav == 3);
 	assert(config.x == 1 && config.y == 2);
 	assert(config.width == 10 && config.height == 20);
 	assert(strcmp(config.cmd, "command") == 0);
 	assert(strcmp(config.title, "Title") == 0);
+	assert(*config.icon == '\0');
 }

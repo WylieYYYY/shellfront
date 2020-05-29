@@ -16,11 +16,11 @@ struct err_state _shellfront_validate_opt(char *locstr, char *sizestr, struct sh
 	if (config->grav < 1 || config->grav > 9) {
 		return define_error("Incorrect gravity range, see README for usage");
 	}
-	if ((config->toggle && config->kill) || (strcmp(config->title, "") && config->ispopup)) {
+	if ((config->toggle && config->kill) || (strcmp(config->title, "") && config->popup)) {
 		return define_error("Conflicting arguments, see README for usage");
 	}
 	// implied flag
-	config->once |= (config->ispopup || config->toggle);
+	config->once |= (config->popup || config->toggle);
 	// return propagated GTK error if there is any
 	if (gtkerr == NULL) return ((struct err_state) { .has_error = 0, .errmsg = "" });
 	struct err_state state = { .has_error = gtkerr->code };
@@ -60,6 +60,13 @@ GOptionEntry *_shellfront_construct_opt(const char *builtin, GOptionEntry *custo
 			.arg_description = "TITLE",
 			.description = "Set the title for application window"
 		}, {
+			.long_name = "icon",
+			.short_name = 'I',
+			.arg = G_OPTION_ARG_STRING,
+			.arg_data = &(config->icon),
+			.arg_description = "PATH",
+			.description = "Set the icon for application window"
+		}, {
 			.long_name = "cmd",
 			.short_name = 'c',
 			.arg = G_OPTION_ARG_STRING,
@@ -73,11 +80,11 @@ GOptionEntry *_shellfront_construct_opt(const char *builtin, GOptionEntry *custo
 			.arg_data = &(config->interactive),
 			.description = "Application can be interacted with mouse and auto focuses"
 		}, {
-			.long_name = "ispopup",
+			.long_name = "popup",
 			.short_name = 'p',
 			.arg = G_OPTION_ARG_NONE,
-			.arg_data = &(config->ispopup),
-			.description = "Display as popup instead of application, implies -1"
+			.arg_data = &(config->popup),
+			.description = "Display as popup instead of a window, implies -1"
 		}, {
 			.long_name = "once",
 			.short_name = '1',

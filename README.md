@@ -2,8 +2,7 @@
 [![pipeline status](https://gitlab.com/WylieYYYY/shellfront/badges/master/pipeline.svg)](https://gitlab.com/WylieYYYY/shellfront/commits/master)
 [![coverage report](https://gitlab.com/WylieYYYY/shellfront/badges/master/coverage.svg)](https://gitlab.com/WylieYYYY/shellfront/commits/master)  
 ShellFront is a simple frontend for terminal applications and Linux shell scripts. Making terminal application window customizable by user
-or developer.   
-For similar function in Microsoft Windows, check out [ConEmu](https://conemu.github.io)!
+or developer.
 #### Screenshot
 Alsamixer started from right-clicking the clock in tint2, demonstrates compatibility with Ncurses.  
 `shellfront -Tips 30x14 -g 3 -c 'alsamixer'`  
@@ -120,9 +119,10 @@ Window and terminal properties
 - width                   : 80
 - height                  : 24
 - title                   : ""
-- cmd for target command  : "echo 'Hello World!'; read" (In terminal) or "" (In C library) [This is not used by 'catch' function]
+- icon filepath           : "" (Uses window manager's default icon)
+- cmd for target command  : "echo 'Hello World!'; read" (In terminal) (This is not used in C library)
 - interactive for input   : false or 0
-- ispopup                 : false or 0
+- popup instead of window : false or 0
 - once for single instance: false or 0
 
 Invoke behaviours switch

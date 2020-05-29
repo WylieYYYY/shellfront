@@ -22,12 +22,14 @@ struct shellfront_term_conf {
 	int x, y;
 	long width, height;
 	char *title;
+	// filepath for the icon
+	char *icon;
 	// command to be executed in shellfront
 	char *cmd;
 	// can mouse and keyboard interact with the window
 	int interactive;
-	// is the window a pop up
-	int ispopup;
+	// is it a popup
+	int popup;
 	// is the application single instance
 	int once;
 

@@ -14,7 +14,14 @@ void _shellfront_gtk_activate(GtkApplication *app, struct shellfront_term_conf *
 void _shellfront_window_show(GtkWindow *window, void *user_data);
 void _shellfront_terminal_exit(VteTerminal *terminal, int status, GtkWindow *window);
 
-static int test_state;
+static int test_state = 1;
+void mock_err_string_arg(FILE *fp, char *fmt, char *str) {
+	assert(test_state != 0);
+	assert(fp == stderr);
+	assert(strcmp(fmt, "%s\n") == 0);
+	assert(str != NULL);
+	test_state = 0;
+}
 static GtkWindow *window;
 VteTerminal *test_terminal;
 GtkWidget *mock_gtk_application_window_new(GtkApplication *application) {
@@ -73,7 +80,8 @@ void test_gtkfunc() {
 	// test ispopup
 	gtk_init(0, NULL);
 	struct shellfront_term_conf config = shellfront_term_conf_default;
-	config.ispopup = 1;
+	config.popup = 1;
+	config.icon = "";
 	window = GTK_WINDOW(gtk_window_new(GTK_WINDOW_TOPLEVEL));
 	test_terminal = VTE_TERMINAL(vte_terminal_new());
 	_shellfront_apply_opt(window, test_terminal, &config);
@@ -85,12 +93,20 @@ void test_gtkfunc() {
 		G_SIGNAL_MATCH_ID | G_SIGNAL_MATCH_FUNC | G_SIGNAL_MATCH_DATA,
 		sigid, 0, NULL, &_shellfront_window_focus_out, window);
 	assert(sighandler != 0);
+	assert(test_state == 1);
+	assert(gtk_window_get_icon(window) == NULL);
+	// test icon error
+	config.icon = "/";
+	_shellfront_apply_opt(window, test_terminal, &config);
+	assert(test_state == 0);
+	assert(gtk_window_get_icon(window) == NULL);
 	gtk_widget_destroy(GTK_WIDGET(window));
 	// void gtk_activate(GtkApplication *app, struct term_conf *config)
 	config.once = 1;
 	config.interactive = 1;
-	config.ispopup = 0;
+	config.popup = 0;
 	config.title = "Title";
+	config.icon = "favicon.png";
 	config.cmd = "command";
 	config.grav = 5;
 	_shellfront_gtk_activate(NULL, &config);
@@ -98,6 +114,7 @@ void test_gtkfunc() {
 	int x, y;
 	gtk_window_get_position(window, &x, &y);
 	assert(x != 0 && y != 0);
+	assert(gtk_window_get_icon(window) != NULL);
 	gtk_widget_destroy(GTK_WIDGET(test_terminal));
 	gtk_widget_destroy(GTK_WIDGET(window));
 }

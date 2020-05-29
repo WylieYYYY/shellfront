@@ -13,6 +13,8 @@
 	#define gtk_window_present(x) mock_gtk_window_present(x)
 	void mock_sig_exit(int signo);
 	#define _shellfront_sig_exit(x) mock_sig_exit(x)
+	void mock_err_string_arg(FILE *fp, char *fmt, char *str);
+	#define fprintf(x,y,z) mock_err_string_arg(x,y,z)
 	GtkWidget *mock_gtk_application_window_new(GtkApplication *application);
 	#define gtk_application_window_new(x) mock_gtk_application_window_new(x)
 	extern VteTerminal *test_terminal;
@@ -65,7 +67,7 @@ void _shellfront_apply_opt(GtkWindow *window, VteTerminal *terminal, struct shel
 	if (!config->interactive) gtk_widget_set_sensitive(GTK_WIDGET(terminal), FALSE);
 	
 	// all type of window is not resizable
-	if (config->ispopup) {
+	if (config->popup) {
 		// no title bar and icon
 		gtk_window_set_decorated(window, FALSE);
 		gtk_window_set_skip_taskbar_hint(window, TRUE);
@@ -73,6 +75,12 @@ void _shellfront_apply_opt(GtkWindow *window, VteTerminal *terminal, struct shel
 		gtk_widget_set_events(GTK_WIDGET(window), GDK_FOCUS_CHANGE_MASK);
 		g_signal_connect(GTK_WIDGET(window), "focus-out-event", G_CALLBACK(_shellfront_window_focus_out), window);
 	} else gtk_window_set_resizable(window, FALSE);
+	if (*config->icon != '\0') {
+		GError *gtkerr = NULL;
+		gtk_window_set_icon_from_file(window, config->icon, &gtkerr);
+		if (gtkerr != NULL) fprintf(stderr, "%s\n", gtkerr->message);
+		g_clear_error(&gtkerr);
+	}
 }
 
 void _shellfront_gtk_activate(GtkApplication *app, struct shellfront_term_conf *config) {
