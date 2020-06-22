@@ -8,7 +8,7 @@
 
 extern char *_shellfront_tmpid;
 struct err_state _shellfront_lock_process(int pid);
-struct err_state _shellfront_unlock_process(void);
+struct err_state _shellfront_unlock_process(char *exe_name);
 void _shellfront_sig_exit(int signo);
 
 static int test_state;
@@ -63,7 +63,9 @@ remove -1 flag or '/tmp/shellfront.mock.lock' to unlock") == 0);
 	// PID mismatch error
 	_shellfront_tmpid = malloc(26);
 	strcpy(_shellfront_tmpid, "/tmp/shellfront.mock.lock");
-	state = _shellfront_unlock_process();
+	char *exe_name = malloc(11);
+	strcpy(exe_name, "shellfront");
+	state = _shellfront_unlock_process(exe_name);
 	assert(state.has_error);
 	assert(strcmp(state.errmsg, "PID mismatch in record, use system kill tool") == 0);
 	assert(test_state == 1);
@@ -72,21 +74,36 @@ remove -1 flag or '/tmp/shellfront.mock.lock' to unlock") == 0);
 	strcpy(_shellfront_tmpid, "/tmp/shellfront.mock.lock");
 	_shellfront_lock_process(123);
 	test_state = 0;
-	state = _shellfront_unlock_process();
+	exe_name = malloc(11);
+	strcpy(exe_name, "shellfront");
+	state = _shellfront_unlock_process(exe_name);
 	assert(!state.has_error);
 	assert(test_state == 2);
 	// no instance error
 	_shellfront_tmpid = malloc(26);
 	strcpy(_shellfront_tmpid, "/tmp/shellfront.fake.lock");
-	state = _shellfront_unlock_process();
+	exe_name = malloc(11);
+	strcpy(exe_name, "shellfront");
+	state = _shellfront_unlock_process(exe_name);
 	assert(state.has_error);
 	assert(strcmp(state.errmsg, "No instance of application is running or it is not ran with -1") == 0);
+	// no error, integration
+	_shellfront_tmpid = malloc(26);
+	strcpy(_shellfront_tmpid, "/tmp/shellfront.mock.lock");
+	_shellfront_lock_process(123);
+	test_state = 1;
+	exe_name = malloc(5);
+	strcpy(exe_name, "grep");
+	state = _shellfront_unlock_process(exe_name);
+	assert(!state.has_error);
 	// no process error
 	_shellfront_tmpid = malloc(26);
 	strcpy(_shellfront_tmpid, "/tmp/shellfront.mock.lock");
 	_shellfront_lock_process(123);
 	test_state = -1;
-	state = _shellfront_unlock_process();
+	exe_name = malloc(11);
+	strcpy(exe_name, "shellfront");
+	state = _shellfront_unlock_process(exe_name);
 	assert(state.has_error);
 	assert(strcmp(state.errmsg, "No such process found, use system kill tool") == 0);
 }

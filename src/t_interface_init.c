@@ -8,7 +8,7 @@
 
 extern char *_shellfront_tmpid;
 void _shellfront_gtk_activate(GtkApplication *app, struct shellfront_term_conf *config);
-struct err_state _shellfront_initialize(struct shellfront_term_conf *config);
+struct err_state _shellfront_initialize(struct shellfront_term_conf *config, bool is_integrate);
 
 static struct shellfront_term_conf config;
 static bool run_test_state = true;
@@ -40,7 +40,7 @@ int mock_access(const char *pathname, int mode) {
 	// check provided lock file name and mode
 	assert(strcmp(pathname, "/tmp/shellfront.5863446.lock") == 0);
 	assert(mode == F_OK);
-	// -1 for failure
+	// true for failure
 	return -run_test_state;
 }
 
@@ -48,37 +48,37 @@ void test_interface_init() {
 	// struct err_state _shellfront_initialize(struct shellfront_term_conf *config)
 	// test no lock condition flags (GTK error)
 	config = shellfront_term_conf_default;
-	struct err_state state = _shellfront_initialize(&config);
+	struct err_state state = _shellfront_initialize(&config, true);
 	assert(state.has_error == 2);
 	assert(strcmp(state.errmsg, "GTK error") == 0);
 	// test no lock condition flags (no error)
 	run_test_state = false;
-	state = _shellfront_initialize(&config);
+	state = _shellfront_initialize(&config, true);
 	assert(!state.has_error);
 	// test kill
 	config.kill = true;
-	state = _shellfront_initialize(&config);
+	state = _shellfront_initialize(&config, true);
 	assert(!state.has_error);
 	assert(strcmp(state.errmsg, "Unlocked process") == 0);
 	// test once (lock error)
 	config.kill = false;
 	config.once = true;
-	state = _shellfront_initialize(&config);
+	state = _shellfront_initialize(&config, true);
 	assert(state.has_error);
 	assert(strcmp(state.errmsg, "Lock process") == 0);
 	// test once (no error)
-	state = _shellfront_initialize(&config);
+	state = _shellfront_initialize(&config, true);
 	assert(!state.has_error);
 	assert(strcmp(state.errmsg, "") == 0);
 	// test toggle and lock file does not exists
 	config.cmd = "hi";
 	config.once = false;
 	config.toggle = true;
-	state = _shellfront_initialize(&config);
+	state = _shellfront_initialize(&config, true);
 	assert(state.has_error == 2);
 	assert(strcmp(state.errmsg, "GTK error") == 0);
 	// test toggle and lock file exists
-	state = _shellfront_initialize(&config);
+	state = _shellfront_initialize(&config, true);
 	assert(!state.has_error);
 	assert(strcmp(state.errmsg, "Unlocked process") == 0);
 }

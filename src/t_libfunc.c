@@ -10,7 +10,7 @@ struct err_state _shellfront_start_process(char *prog_name, struct shellfront_te
 struct err_state shellfront_interpret(int argc, char **argv);
 
 static bool process_test_state;
-struct err_state mock_initialize(struct shellfront_term_conf *config) {
+struct err_state mock_initialize(struct shellfront_term_conf *config, bool is_integrate) {
 	process_test_state ^= true;
 	// write the command detail for error message
 	if (process_test_state) return define_error(config->cmd);

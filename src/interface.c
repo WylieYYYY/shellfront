@@ -11,8 +11,9 @@
 	#define getpid() 123
 	int mock_g_application_run(GApplication *application, int argc, char **argv);
 	#define g_application_run(x,y,z) mock_g_application_run(x,y,z)
-	struct err_state mock_unlock_process(void);
-	#define _SHELLFRONT_UNLOCK_PROCESS() mock_unlock_process()
+	#define _shellfront_prepare_hashable(x,y,z) (strdup(x))
+	struct err_state mock_unlock_process(char *exe_name);
+	#define _SHELLFRONT_UNLOCK_PROCESS(x) mock_unlock_process(x)
 	struct err_state mock_lock_process(int pid);
 	#define _SHELLFRONT_LOCK_PROCESS(x) mock_lock_process(x)
 	int mock_access(const char *pathname, int mode);
@@ -26,7 +27,7 @@
 	void mock_exit(int status);
 	#define exit(x) mock_exit(x)
 #else
-	#define _SHELLFRONT_UNLOCK_PROCESS() _shellfront_unlock_process()
+	#define _SHELLFRONT_UNLOCK_PROCESS(x) _shellfront_unlock_process(x)
 	#define _SHELLFRONT_LOCK_PROCESS(x) _shellfront_lock_process(x)
 	#define FOPEN(x,y) fopen(x,y)
 #endif
@@ -41,19 +42,20 @@ void _shellfront_sig_exit(int signo) {
 	exit(0);
 }
 
-struct err_state _shellfront_unlock_process(void) {
+struct err_state _shellfront_unlock_process(char *exe_name) {
 	// target must have "once" flag, so lock file must be accessible
 	FILE *tmpfp = fopen(_shellfront_tmpid, "r");
 	if (tmpfp == NULL) {
+		free(exe_name);
 		free(_shellfront_tmpid);
 		return define_error("No instance of application is running or it is not ran with -1");
 	}
 	// HDB UUCP lock file format process ID must be no longer than 10 characters
-	char buf[11];
-	buf[10] = '\0';
-	fread(buf, 1, 10, tmpfp);
+	char pid_buf[11];
+	pid_buf[10] = '\0';
+	fread(pid_buf, 1, 10, tmpfp);
 	fclose(tmpfp);
-	int pid = atoi(buf);
+	int pid = atoi(pid_buf);
 	// open the process description file
 	char *procid = sxprintf("/proc/%i/comm", pid);
 	FILE *procfp = FOPEN(procid, "r");
@@ -61,12 +63,16 @@ struct err_state _shellfront_unlock_process(void) {
 	struct err_state state = { .has_error = 0, .errmsg = "" };
 	if (procfp == NULL) state = define_error("No such process found, use system kill tool");
 	else {
-		fread(buf, 1, 10, procfp);
+		char *name_buf = malloc(strlen(exe_name) + 1);
+		name_buf[strlen(exe_name)] = '\0';
+		fread(name_buf, 1, strlen(exe_name), procfp);
 		fclose(procfp);
-		// if it is indeed belong to "shellfront", kill it
-		if (strcmp(buf, "shellfront") == 0) kill(pid, SIGTERM);
+		// if it is indeed belong to the executable, kill it
+		if (strcmp(name_buf, exe_name) == 0) kill(pid, SIGTERM);
 		else state = define_error("PID mismatch in record, use system kill tool");
+		free(name_buf);
 	}
+	free(exe_name);
 	// remove lock file and free resource
 	remove(_shellfront_tmpid);
 	free(_shellfront_tmpid);
@@ -92,11 +98,16 @@ struct err_state _shellfront_lock_process(int pid) {
 
 	return ((struct err_state) { .has_error = 0, .errmsg = "" });
 }
-struct err_state _shellfront_initialize(struct shellfront_term_conf *config) {
+struct err_state _shellfront_initialize(struct shellfront_term_conf *config, int is_integrate) {
 	// get lock file name
-	_shellfront_tmpid = sxprintf("/tmp/shellfront.%lu.lock", djb_hash(config->cmd));
+	char *exe_name;
+	char *prepared_cmd = _shellfront_prepare_hashable(config->cmd, &exe_name, is_integrate);
+	_shellfront_tmpid = sxprintf("/tmp/shellfront.%lu.lock", djb_hash(prepared_cmd));
+	free(prepared_cmd);
 	// if it is killing by flag or toggle
-	if (config->kill || (config->toggle && access(_shellfront_tmpid, F_OK) != -1)) return _SHELLFRONT_UNLOCK_PROCESS();
+	if (config->kill || (config->toggle && access(_shellfront_tmpid, F_OK) != -1)) {
+		return _SHELLFRONT_UNLOCK_PROCESS(exe_name);
+	}
 	
 	// get this process's process ID
 	int pid = getpid();

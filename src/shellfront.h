@@ -12,7 +12,7 @@ struct err_state {
 	// flag for when error occured
 	int has_error;
 	// human readable error message
-	char errmsg[100];
+	char errmsg[150];
 };
 // configuration structure
 struct shellfront_term_conf {

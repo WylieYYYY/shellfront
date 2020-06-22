@@ -1,9 +1,15 @@
 #include "shellfront.h"
 
+#include <libgen.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#ifdef UNIT_TEST
+	char *mock_realpath(const char *path, char *resolved_path);
+	#define realpath(x,y) mock_realpath(x,y)
+#endif
 
 struct err_state define_error(char *msg) {
 	struct err_state err;
@@ -65,4 +71,24 @@ char *sxprintf(char *fmt, ...) {
 	vsnprintf(str, size, fmt, argptr);
 	va_end(argptr);
 	return str;
+}
+char *_shellfront_prepare_hashable(char *cmd, char **exe_name, int is_integrate) {
+	char *cmd_dup = strdup(cmd);
+	// trim auto-numbered redirection
+	if (is_integrate) *(strrchr(cmd_dup, '>') - 1) = '\0';
+	// paths with '/' does not use PATH variable and should be resolved to realpath
+	char *cmd_file = strsep(&cmd_dup, " ");
+	char *real_path = realpath(cmd_file, NULL);
+	char *prepared = strchr(cmd_file, '/') == NULL? cmd_file : real_path;
+	// need to allocate a new string to keep content and free
+	if (cmd_dup == NULL) prepared = strdup(prepared);
+	else prepared = sxprintf("%s %s", prepared, cmd_dup);
+	free(cmd_file);
+	if (is_integrate) *exe_name = strdup(basename(real_path));
+	else {
+		*exe_name = malloc(11);
+		strcpy(*exe_name, "shellfront");
+	}
+	free(real_path);
+	return prepared;
 }

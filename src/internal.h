@@ -17,6 +17,8 @@ int _shellfront_parse_loc_str(char *loc, int *x, int *y);
 unsigned long djb_hash(char *str);
 // allocate and perform snprintf automatically
 char *sxprintf(char *fmt, ...);
+// strip variable part to prepare command for hashing
+char *_shellfront_prepare_hashable(char *cmd, char **exe_name, int is_integrate);
 
 // gtkfunc.c
 
@@ -28,7 +30,7 @@ void _shellfront_gtk_activate(GtkApplication *app, struct shellfront_term_conf *
 // cleanup no matter how it is terminated
 void _shellfront_sig_exit(int signo);
 // start the GUI with configuration struct
-struct err_state _shellfront_initialize(struct shellfront_term_conf *config);
+struct err_state _shellfront_initialize(struct shellfront_term_conf *config, int is_integrate);
 // accept and parse flags into configuration struct
 struct err_state _shellfront_parse(int argc, char **argv, char *builtin_opt,
 	GOptionEntry *custom_opt, struct shellfront_term_conf *parsed_conf);
