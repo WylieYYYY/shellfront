@@ -11,7 +11,7 @@ default:
         - export DISPLAY=:1
         - export SHELL=/bin/bash
 
-build-pkg:
+build:
     stage: build
     script:
         - rm -rf .git
@@ -20,7 +20,7 @@ build-pkg:
         paths:
             - "*"
 
-make-pkg:
+make:
     stage: make
     script:
         - ./configure
