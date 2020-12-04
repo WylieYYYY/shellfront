@@ -22,8 +22,8 @@ Calendar popup with various tips and tricks from the [tips](https://gitlab.com/W
 1. Download the `build ready version` from the `releases` tab on the side
    and extract to a directory with a name without whitespaces. Then, install the following packages.
 2. Install the following packages:  
-   For ArchLinux: `gtk3 vte3`  
-   For Ubuntu: `libgtk-3-dev libvte-2.91-dev`  
+   For ArchLinux: `gtk3 vte3 gettext`  
+   For Ubuntu: `libgtk-3-dev libvte-2.91-dev gettext`  
    Other distros should also install GTK and VTE development package from repositories or build from source.
 3. Change to the ShellFront directory by using `cd`
 4. ShellFront can then be installed by using `./configure && make` and `sudo make install`
@@ -36,7 +36,7 @@ so the testing environment is sandboxed. Then start from running the command in 
 
 4. Finish step 3 from setup above, install `gcovr`.
 5. Install `xvfb` and run `Xvfb :1 -screen 0 1600x1200x24 & export DISPLAY=:1` if no GUI is available.
-6. Build with `./configure --enable-unit-tests && make` and run it by using `SHELL='/bin/bash';src/test`
+6. Build with `./configure --enable-unit-tests && make` and run it by using `LANG=C SHELL='/bin/bash' src/test`
 7. Check the result with `gcovr -r src -e 'src/t_*'` (append optional `-b` flag for branch coverage).
 
 The package can be uninstalled by using `sudo make uninstall` in the same directory.
