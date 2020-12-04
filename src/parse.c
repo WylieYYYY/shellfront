@@ -8,16 +8,16 @@
 
 struct err_state _shellfront_validate_opt(char *locstr, char *sizestr, struct shellfront_term_conf *config, GError *gtkerr) {
 	if (!_shellfront_parse_loc_str(locstr, &(config->x), &(config->y))) {
-		return define_error("Incorrect location format, should be X,Y");
+		return define_error(_("Incorrect location format, should be X,Y"));
 	}
 	if (!_shellfront_parse_size_str(sizestr, &(config->width), &(config->height))) {
-		return define_error("Incorrect size format, should be XxY");
+		return define_error(_("Incorrect size format, should be XxY"));
 	}
 	if (config->grav < 1 || config->grav > 9) {
-		return define_error("Incorrect gravity range, see README for usage");
+		return define_error(_("Incorrect gravity range, see README for usage"));
 	}
 	if ((config->toggle && config->kill) || (strcmp(config->title, "") && config->popup)) {
-		return define_error("Conflicting arguments, see README for usage");
+		return define_error(_("Conflicting arguments, see README for usage"));
 	}
 	// implied flag
 	config->once |= (config->popup || config->toggle);
@@ -36,73 +36,73 @@ GOptionEntry *_shellfront_construct_opt(const char *builtin, GOptionEntry *custo
 			.short_name = 'g',
 			.arg = G_OPTION_ARG_INT,
 			.arg_data = &(config->grav),
-			.arg_description = "ENUM",
-			.description = "Set gravity for window, 1 = Top-left, 9 = Bottom-right"
+			.arg_description = _("ENUM"),
+			.description = _("Set gravity for window, 1 = Top-left, 9 = Bottom-right")
 		}, {
 			.long_name = "loc",
 			.short_name = 'l',
 			.arg = G_OPTION_ARG_STRING,
 			.arg_data = locstr,
 			.arg_description = "X,Y",
-			.description = "Set the default screen location"
+			.description = _("Set the default screen location")
 		}, {
 			.long_name = "size",
 			.short_name = 's',
 			.arg = G_OPTION_ARG_STRING,
 			.arg_data = sizestr,
 			.arg_description = "XxY",
-			.description = "Set the size"
+			.description = _("Set the size")
 		}, {
 			.long_name = "title",
 			.short_name = 't',
 			.arg = G_OPTION_ARG_STRING,
 			.arg_data = &(config->title),
-			.arg_description = "TITLE",
-			.description = "Set the title for application window"
+			.arg_description = _("TITLE"),
+			.description = _("Set the title for application window")
 		}, {
 			.long_name = "icon",
 			.short_name = 'I',
 			.arg = G_OPTION_ARG_STRING,
 			.arg_data = &(config->icon),
-			.arg_description = "PATH",
-			.description = "Set the icon for application window"
+			.arg_description = _("PATH"),
+			.description = _("Set the icon for application window")
 		}, {
 			.long_name = "cmd",
 			.short_name = 'c',
 			.arg = G_OPTION_ARG_STRING,
 			.arg_data = &(config->cmd),
-			.arg_description = "COMMAND",
-			.description = "Set the command to be executed"
+			.arg_description = _("COMMAND"),
+			.description = _("Set the command to be executed")
 		}, {
 			.long_name = "interactive",
 			.short_name = 'i',
 			.arg = G_OPTION_ARG_NONE,
 			.arg_data = &(config->interactive),
-			.description = "Application can be interacted with mouse and auto focuses"
+			.description = _("Application can be interacted with mouse and auto focuses")
 		}, {
 			.long_name = "popup",
 			.short_name = 'p',
 			.arg = G_OPTION_ARG_NONE,
 			.arg_data = &(config->popup),
-			.description = "Display as popup instead of a window, implies -1"
+			.description = _("Display as popup instead of a window, implies -1")
 		}, {
 			.long_name = "once",
 			.short_name = '1',
 			.arg = G_OPTION_ARG_NONE,
 			.arg_data = &(config->once),
-			.description = "Set if only one instance is allowed"
+			.description = _("Set if only one instance is allowed")
 		}, {
 			.long_name = "toggle",
 			.short_name = 'T',
 			.arg = G_OPTION_ARG_NONE,
 			.arg_data = &(config->toggle),
-			.description = "Toggle single instance application, implies -1"
+			.description = _("Toggle single instance application, implies -1")
 		}, {
 			.long_name = "kill",
 			.short_name = 'k',
 			.arg = G_OPTION_ARG_NONE,
 			.arg_data = &(config->kill),
-			.description = "Kill a single instance application according to command"
+			.description = _("Kill a single instance application according to command")
 		}
 	};
 

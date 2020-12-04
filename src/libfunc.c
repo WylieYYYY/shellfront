@@ -43,13 +43,13 @@ struct err_state _shellfront_start_process(char *prog_name, struct shellfront_te
 	struct err_state state = _shellfront_initialize(config, true);
 	free(invoke_cmd);
 	// if executed with no error, indicate it is the original process
-	if (!state.has_error) strcpy(state.errmsg, "Original process, please end");
+	if (!state.has_error) strcpy(state.errmsg, _("Original process, please end"));
 	return state;
 }
 
 struct err_state shellfront_interpret(int argc, char **argv) {
 	struct shellfront_term_conf config = shellfront_term_conf_default;
-	config.desc = "- simple frontend for shell scripts";
+	config.desc = _("- simple frontend for shell scripts");
 	struct err_state state = _shellfront_parse(argc, argv, "glstIcip1Tk", NULL, &config);
 	// parse error or continue execution
 	if (state.has_error) return state;
@@ -62,7 +62,7 @@ struct err_state shellfront_catch(int argc, char **argv, char *accepted_opt,
 	bool use_shellfront = true;
 	// this function is intended to catch itself as command
 	if (strchr(accepted_opt, 'c') != NULL) {
-		return define_error("ShellFront integration does not allow cmd option");
+		return define_error(_("ShellFront integration does not allow cmd option"));
 	}
 	for (int i = 1; i < argc; i++) {
 		if (strcmp(argv[i], "--no-shellfront") == 0) use_shellfront = false;

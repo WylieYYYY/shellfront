@@ -17,6 +17,15 @@ AC_ARG_ENABLE([unit-tests],
 AC_MSG_RESULT([$enable_unit_tests])
 AM_CONDITIONAL([UNIT_TEST], [test "X$enable_unit_tests" = "Xyes"])
 
-AC_CONFIG_FILES([src/makefile makefile shellfront.pc])
+GETTEXT_PACKAGE=shellfront
+AC_DEFINE_UNQUOTED([GETTEXT_PACKAGE], ["$GETTEXT_PACKAGE"],
+	[The domain to use with gettext])
+AM_GNU_GETTEXT([external])
+AM_GNU_GETTEXT_VERSION([0.21])
+SHELLFRONT_LOCALEDIR=[${datadir}/locale]
+AC_SUBST([SHELLFRONT_LOCALEDIR])
+
+AC_CONFIG_FILES([po/Makefile.in src/makefile makefile shellfront.pc])
+AC_CONFIG_COMMANDS_POST([mv po/Makevars.template po/Makevars])
 AC_PROG_INSTALL
 AC_OUTPUT

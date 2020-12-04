@@ -20,6 +20,6 @@ test_LDADD = $(GTK_LIBS) $(VTE_LIBS) libshellfront.la
 else
 bin_PROGRAMS = shellfront
 shellfront_SOURCES = main.c
-shellfront_CFLAGS = $(GTK_CFLAGS)
+shellfront_CFLAGS = $(GTK_CFLAGS) -DSHELLFRONT_LOCALEDIR=\"${SHELLFRONT_LOCALEDIR}\"
 shellfront_LDADD = $(GTK_LIBS) libshellfront.la
 endif

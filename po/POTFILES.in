@@ -1,0 +1,3 @@
+src/parse.c
+src/interface.c
+src/libfunc.c

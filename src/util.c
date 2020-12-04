@@ -85,10 +85,7 @@ char *_shellfront_prepare_hashable(char *cmd, char **exe_name, int is_integrate)
 	else prepared = sxprintf("%s %s", prepared, cmd_dup);
 	free(cmd_file);
 	if (is_integrate) *exe_name = strdup(basename(real_path));
-	else {
-		*exe_name = malloc(11);
-		strcpy(*exe_name, "shellfront");
-	}
+	else *exe_name = strdup("shellfront");
 	free(real_path);
 	return prepared;
 }

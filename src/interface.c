@@ -48,7 +48,7 @@ struct err_state _shellfront_unlock_process(char *exe_name) {
 	if (tmpfp == NULL) {
 		free(exe_name);
 		free(_shellfront_tmpid);
-		return define_error("No instance of application is running or it is not ran with -1");
+		return define_error(_("No instance of application is running or it is not ran with -1"));
 	}
 	// HDB UUCP lock file format process ID must be no longer than 10 characters
 	char pid_buf[11];
@@ -61,7 +61,7 @@ struct err_state _shellfront_unlock_process(char *exe_name) {
 	FILE *procfp = FOPEN(procid, "r");
 	free(procid);
 	struct err_state state = { .has_error = 0, .errmsg = "" };
-	if (procfp == NULL) state = define_error("No such process found, use system kill tool");
+	if (procfp == NULL) state = define_error(_("No such process found, use system kill tool"));
 	else {
 		char *name_buf = malloc(strlen(exe_name) + 1);
 		name_buf[strlen(exe_name)] = '\0';
@@ -69,7 +69,7 @@ struct err_state _shellfront_unlock_process(char *exe_name) {
 		fclose(procfp);
 		// if it is indeed belong to the executable, kill it
 		if (strcmp(name_buf, exe_name) == 0) kill(pid, SIGTERM);
-		else state = define_error("PID mismatch in record, use system kill tool");
+		else state = define_error(_("PID mismatch in record, use system kill tool"));
 		free(name_buf);
 	}
 	free(exe_name);
@@ -82,7 +82,7 @@ struct err_state _shellfront_lock_process(int pid) {
 	// write HDB UUCP lock file if ran with "once" flag
 	FILE *tmpfp = fopen(_shellfront_tmpid, "wx");
 	if (tmpfp == NULL) {
-		char *msg = sxprintf("Existing instance is running, remove -1 flag or '%s' to unlock", _shellfront_tmpid);
+		char *msg = sxprintf(_("Existing instance is running, remove -1 flag or '%s' to unlock"), _shellfront_tmpid);
 		struct err_state state = define_error(msg);
 		free(_shellfront_tmpid);
 		free(msg);
@@ -125,7 +125,7 @@ struct err_state _shellfront_initialize(struct shellfront_term_conf *config, int
 	g_signal_connect(app, "activate", G_CALLBACK(_shellfront_gtk_activate), config);
 	struct err_state state = { .errmsg = "" };
 	state.has_error = g_application_run(G_APPLICATION(app), 0, NULL);
-	if (state.has_error) strcpy(state.errmsg, "GTK error");
+	if (state.has_error) strcpy(state.errmsg, _("GTK error"));
 	g_object_unref(app);
 	return state;
 }
