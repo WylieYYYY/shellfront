@@ -74,8 +74,6 @@ char *sxprintf(char *fmt, ...) {
 }
 char *_shellfront_prepare_hashable(char *cmd, char **exe_name, int is_integrate) {
 	char *cmd_dup = strdup(cmd);
-	// trim auto-numbered redirection
-	if (is_integrate) *(strrchr(cmd_dup, '>') - 1) = '\0';
 	// paths with '/' does not use PATH variable and should be resolved to realpath
 	char *cmd_file = strsep(&cmd_dup, " ");
 	char *real_path = realpath(cmd_file, NULL);

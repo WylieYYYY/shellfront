@@ -98,10 +98,11 @@ struct err_state _shellfront_lock_process(int pid) {
 
 	return ((struct err_state) { .has_error = 0, .errmsg = "" });
 }
-struct err_state _shellfront_initialize(struct shellfront_term_conf *config, int is_integrate) {
+struct err_state _shellfront_initialize(struct _shellfront_env_data *data) {
+	struct shellfront_term_conf *config = data->term_conf;
 	// get lock file name
 	char *exe_name;
-	char *prepared_cmd = _shellfront_prepare_hashable(config->cmd, &exe_name, is_integrate);
+	char *prepared_cmd = _shellfront_prepare_hashable(config->cmd, &exe_name, data->is_integrate);
 	_shellfront_tmpid = sxprintf("/tmp/shellfront.%lu.lock", djb_hash(prepared_cmd));
 	free(prepared_cmd);
 	// if it is killing by flag or toggle
@@ -122,9 +123,9 @@ struct err_state _shellfront_initialize(struct shellfront_term_conf *config, int
 	GtkApplication *app = gtk_application_new(appid, G_APPLICATION_FLAGS_NONE);
 	free(appid);
 	// link terminal setup function
-	g_signal_connect(app, "activate", G_CALLBACK(_shellfront_gtk_activate), config);
+	g_signal_connect(app, "activate", G_CALLBACK(_shellfront_gtk_activate), data);
 	struct err_state state = { .errmsg = "" };
-	state.has_error = g_application_run(G_APPLICATION(app), 0, NULL);
+	state.has_error = g_application_run(G_APPLICATION(app), 0, NULL); //TODO: Use GError
 	if (state.has_error) strcpy(state.errmsg, _("GTK error"));
 	g_object_unref(app);
 	return state;

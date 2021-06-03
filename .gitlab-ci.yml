@@ -19,12 +19,16 @@ build:
     artifacts:
         paths:
             - "*"
+    except:
+        - dev
 
 make:
     stage: make
     script:
         - ./configure
         - make
+    except:
+        - dev
 
 test:
     stage: test
@@ -33,3 +37,5 @@ test:
         - make
         - src/test
         - gcovr -e 'src/t_*' -r src
+    except:
+        - dev

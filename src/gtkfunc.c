@@ -4,6 +4,7 @@
 #include <gtk/gtk.h>
 #include <signal.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <vte/vte.h>
 
 #ifdef UNIT_TEST
@@ -30,6 +31,8 @@
 		VteTerminalSpawnAsyncCallback callback, void *user_data);
 	#define vte_terminal_spawn_async(a,b,c,d,e,f,g,h,i,j,k,l,m) mock_vte_terminal_spawn_async(a,b,c,d,e,f,g,h,i,j,k,l,m)
 #endif
+
+struct err_state *_shellfront_fork_state = NULL;
 
 // change focus to the window
 void _shellfront_window_show(GtkWindow *window, void *user_data) {
@@ -82,8 +85,36 @@ void _shellfront_apply_opt(GtkWindow *window, VteTerminal *terminal, struct shel
 		g_clear_error(&gtkerr);
 	}
 }
+void _shellfront_configure_terminal(VteTerminal *terminal, struct _shellfront_env_data *data) {
+	if (data->is_integrate) {
+		VtePty *pty = vte_pty_new_sync(VTE_PTY_DEFAULT, NULL, NULL);//TODO: Handle Error
+		vte_terminal_set_pty(terminal, pty);
+		pid_t pid = fork();
+		if (pid > 0) return;
+		// define _shellfront_fork_state to indicate forked
+		_shellfront_fork_state = &((struct err_state) { .has_error = 0, .errmsg = "" });
+		struct err_state fork_error = define_error(_("Fork error"));
+		if (pid == -1) _shellfront_fork_state = &fork_error;
+		// redirect all IO
+		fflush(stderr);
+		int parent_stderr_fd = dup(2);
+		vte_pty_child_setup(pty);
+		dup2(parent_stderr_fd, 2);
+		main(data->argc, data->argv);
+		//FIXME: Terminate gracefully
+	} else {
+		// using the default terminal shell
+		char *shell = vte_get_user_shell();
+		char **argv = (char *[]){ shell, "-c", data->term_conf->cmd, NULL };
+		// no timeout for command
+		vte_terminal_spawn_async(terminal, VTE_PTY_DEFAULT, NULL, argv, NULL,
+			G_SPAWN_SEARCH_PATH, NULL, NULL, NULL, -1, NULL, NULL, NULL);
+		free(shell);
+	}
+}
 
-void _shellfront_gtk_activate(GtkApplication *app, struct shellfront_term_conf *config) {
+void _shellfront_gtk_activate(GtkApplication *app, struct _shellfront_env_data *data) {
+	struct shellfront_term_conf *config = data->term_conf;
 	GtkWindow *window = GTK_WINDOW(gtk_application_window_new(app));
 	VteTerminal *terminal = VTE_TERMINAL(vte_terminal_new());
 
@@ -97,11 +128,7 @@ void _shellfront_gtk_activate(GtkApplication *app, struct shellfront_term_conf *
 	vte_terminal_set_size(terminal, config->width, config->height);
 	// when command ends, terminal exits
 	g_signal_connect(terminal, "child-exited", G_CALLBACK(_shellfront_terminal_exit), window);
-	// using the default terminal shell
-	char **argv = (char *[]){ (char *)g_getenv("SHELL"), "-c", config->cmd, NULL };
-	// no timeout for command
-	vte_terminal_spawn_async(terminal, VTE_PTY_DEFAULT, NULL, argv, NULL,
-		G_SPAWN_SEARCH_PATH, NULL, NULL, NULL, -1, NULL, NULL, NULL);
+	_shellfront_configure_terminal(terminal, data);
 
 	// put the terminal into the window and show both
 	gtk_container_add(GTK_CONTAINER(window), GTK_WIDGET(terminal));
