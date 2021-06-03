@@ -1,5 +1,6 @@
 #include "shellfront.h"
 
+#include <glib.h>
 #include <libgen.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -86,4 +87,14 @@ char *_shellfront_prepare_hashable(char *cmd, char **exe_name, int is_integrate)
 	else *exe_name = strdup("shellfront");
 	free(real_path);
 	return prepared;
+}
+
+struct err_state _shellfront_gerror_to_err_state(GError *gerror) {
+	struct err_state state = { .has_error = 0, .errmsg = "" };
+	if (gerror != NULL) {
+		state.has_error = gerror->code;
+		strcpy(state.errmsg, gerror->message);
+	}
+	g_clear_error(&gerror);
+	return state;
 }

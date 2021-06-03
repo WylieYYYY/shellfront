@@ -22,10 +22,7 @@ struct err_state _shellfront_validate_opt(char *locstr, char *sizestr, struct sh
 	// implied flag
 	config->once |= (config->popup || config->toggle);
 	// return propagated GTK error if there is any
-	if (gtkerr == NULL) return ((struct err_state) { .has_error = 0, .errmsg = "" });
-	struct err_state state = { .has_error = gtkerr->code };
-	strcpy(state.errmsg, gtkerr->message);
-	return state;
+	return _shellfront_gerror_to_err_state(gtkerr);
 }
 
 GOptionEntry *_shellfront_construct_opt(const char *builtin, GOptionEntry *custom,
@@ -147,7 +144,6 @@ struct err_state _shellfront_parse(int argc, char **argv, char *builtin_opt,
 	gtk_init_with_args(&argc, &argv, config->desc, options, NULL, &gtkerr);
 	free(options);
 	struct err_state state = _shellfront_validate_opt(locstr, sizestr, config, gtkerr);
-	g_clear_error(&gtkerr);
 
 	return state;
 }

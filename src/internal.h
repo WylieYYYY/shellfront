@@ -20,6 +20,8 @@ unsigned long djb_hash(char *str);
 char *sxprintf(char *fmt, ...);
 // strip variable part to prepare command for hashing
 char *_shellfront_prepare_hashable(char *cmd, char **exe_name, int is_integrate);
+// convert a GError to an err_state and free gerror
+struct err_state _shellfront_gerror_to_err_state(GError *gerror);
 
 // gtkfunc.c
 

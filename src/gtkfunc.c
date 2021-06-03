@@ -87,21 +87,24 @@ void _shellfront_apply_opt(GtkWindow *window, VteTerminal *terminal, struct shel
 }
 void _shellfront_configure_terminal(VteTerminal *terminal, struct _shellfront_env_data *data) {
 	if (data->is_integrate) {
-		VtePty *pty = vte_pty_new_sync(VTE_PTY_DEFAULT, NULL, NULL);//TODO: Handle Error
+		GError *gtkerr = NULL;
+		VtePty *pty = vte_pty_new_sync(VTE_PTY_DEFAULT, NULL, &gtkerr);
+		// parent process will not check this variable, safe to define here to indicate fork
+		struct err_state gtk_err_state = _shellfront_gerror_to_err_state(gtkerr);
+		_shellfront_fork_state = &gtk_err_state;
 		vte_terminal_set_pty(terminal, pty);
 		pid_t pid = fork();
 		if (pid > 0) return;
-		// define _shellfront_fork_state to indicate forked
-		_shellfront_fork_state = &((struct err_state) { .has_error = 0, .errmsg = "" });
 		struct err_state fork_error = define_error(_("Fork error"));
 		if (pid == -1) _shellfront_fork_state = &fork_error;
 		// redirect all IO
 		fflush(stderr);
-		int parent_stderr_fd = dup(2); //FIXME: Handle dup error
+		int parent_stderr_fd = dup(2);
 		vte_pty_child_setup(pty);
-		dup2(parent_stderr_fd, 2);
+		if (parent_stderr_fd != -1) dup2(parent_stderr_fd, 2);
 		main(data->argc, data->argv);
-		//FIXME: Terminate gracefully
+		if (data->term_conf->once) _shellfront_sig_exit(2);
+		else exit(0);
 	} else {
 		// using the default terminal shell
 		char *shell = vte_get_user_shell();

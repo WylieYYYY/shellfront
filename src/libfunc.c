@@ -75,7 +75,12 @@ struct err_state shellfront_catch(int argc, char **argv, char *accepted_opt,
 	if (_shellfront_fork_state != NULL) {
 		GOptionContext *option_context = g_option_context_new(NULL);
 		g_option_context_add_main_entries(option_context, custom_opt, NULL);
-		g_option_context_parse(option_context, &argc, &argv, NULL);//TODO: Handle Error
+		GError *gliberr = NULL;
+		g_option_context_parse(option_context, &argc, &argv, &gliberr);
+		if (gliberr != NULL) {
+			struct err_state glib_err_state = _shellfront_gerror_to_err_state(gliberr);
+			_shellfront_fork_state = &glib_err_state;
+		}
 		g_option_context_free(option_context);
 		return *_shellfront_fork_state;
 	}

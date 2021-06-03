@@ -125,7 +125,7 @@ struct err_state _shellfront_initialize(struct _shellfront_env_data *data) {
 	// link terminal setup function
 	g_signal_connect(app, "activate", G_CALLBACK(_shellfront_gtk_activate), data);
 	struct err_state state = { .errmsg = "" };
-	state.has_error = g_application_run(G_APPLICATION(app), 0, NULL); //TODO: Use GError
+	state.has_error = g_application_run(G_APPLICATION(app), 0, NULL);
 	if (state.has_error) strcpy(state.errmsg, _("GTK error"));
 	g_object_unref(app);
 	if (data->is_integrate) free(data->argv);
