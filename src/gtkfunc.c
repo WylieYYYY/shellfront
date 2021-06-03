@@ -65,10 +65,10 @@ void _shellfront_window_gravitate(int window_width, int window_height,
 void _shellfront_apply_opt(GtkWindow *window, VteTerminal *terminal, struct shellfront_term_conf *config) {
 	// remove the lock file and free ID string when window destroy
 	if (config->once) g_signal_connect(window, "destroy", G_CALLBACK(_shellfront_window_destroy), NULL);
-	
+
 	// don't give any attention if it is not interactive
 	if (!config->interactive) gtk_widget_set_sensitive(GTK_WIDGET(terminal), FALSE);
-	
+
 	// all type of window is not resizable
 	if (config->popup) {
 		// no title bar and icon
@@ -97,7 +97,7 @@ void _shellfront_configure_terminal(VteTerminal *terminal, struct _shellfront_en
 		if (pid == -1) _shellfront_fork_state = &fork_error;
 		// redirect all IO
 		fflush(stderr);
-		int parent_stderr_fd = dup(2);
+		int parent_stderr_fd = dup(2); //FIXME: Handle dup error
 		vte_pty_child_setup(pty);
 		dup2(parent_stderr_fd, 2);
 		main(data->argc, data->argv);
@@ -133,7 +133,7 @@ void _shellfront_gtk_activate(GtkApplication *app, struct _shellfront_env_data *
 	// put the terminal into the window and show both
 	gtk_container_add(GTK_CONTAINER(window), GTK_WIDGET(terminal));
 	gtk_widget_show_all(GTK_WIDGET(window));
-	
+
 	GdkRectangle workarea;
 	// get the available area of the screen
 	gdk_monitor_get_workarea(gdk_display_get_primary_monitor(gdk_display_get_default()), &workarea);

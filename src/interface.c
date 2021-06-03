@@ -109,7 +109,7 @@ struct err_state _shellfront_initialize(struct _shellfront_env_data *data) {
 	if (config->kill || (config->toggle && access(_shellfront_tmpid, F_OK) != -1)) {
 		return _SHELLFRONT_UNLOCK_PROCESS(exe_name);
 	}
-	
+
 	// get this process's process ID
 	int pid = getpid();
 	if (config->once) {
@@ -117,7 +117,7 @@ struct err_state _shellfront_initialize(struct _shellfront_env_data *data) {
 		if (state.has_error) return state;
 		// free the lock file name because it is irrelevant for multiple instance application
 	} else free(_shellfront_tmpid);
-	
+
 	// PID is guarenteed unique and can be used as APPID
 	char *appid = sxprintf("shellfront.proc%i", pid);
 	GtkApplication *app = gtk_application_new(appid, G_APPLICATION_FLAGS_NONE);
@@ -128,5 +128,6 @@ struct err_state _shellfront_initialize(struct _shellfront_env_data *data) {
 	state.has_error = g_application_run(G_APPLICATION(app), 0, NULL); //TODO: Use GError
 	if (state.has_error) strcpy(state.errmsg, _("GTK error"));
 	g_object_unref(app);
+	if (data->is_integrate) free(data->argv);
 	return state;
 }

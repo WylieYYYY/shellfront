@@ -4,7 +4,6 @@ AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 AM_PROG_AR
 AC_PROG_CC
-AC_PROG_CC_STDC
 LT_INIT
 
 PKG_CHECK_MODULES([GTK], [gtk+-3.0 >= 3.10])

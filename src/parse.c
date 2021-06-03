@@ -138,6 +138,7 @@ struct err_state _shellfront_parse(int argc, char **argv, char *builtin_opt,
 	char *locstr = "0,0";
 	char *sizestr = "80x24";
 
+	// construct custom options here to fail fast
 	GOptionEntry *options =
 		_shellfront_construct_opt(builtin_opt, custom_opt, config, &locstr, &sizestr);
 

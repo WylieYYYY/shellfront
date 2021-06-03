@@ -17,7 +17,7 @@
 	struct err_state mock_start_process(char *prog_name, struct shellfront_term_conf *config, char *current_tty);
 	#define _SHELLFRONT_START_PROCESS(x,y,z) mock_start_process(x,y,z)
 #else
-	#define _SHELLFRONT_START_PROCESS(x,y) _shellfront_start_process(x,y)
+	#define _SHELLFRONT_START_PROCESS(a,b,c,d,e) _shellfront_start_process(a,b,c,d,e)
 #endif
 
 const struct shellfront_term_conf shellfront_term_conf_default = {
@@ -37,10 +37,23 @@ const struct shellfront_term_conf shellfront_term_conf_default = {
 	.desc = ""
 };
 
-struct err_state _shellfront_start_process(struct _shellfront_env_data *data, char *current_tty) {
+struct err_state _shellfront_start_process(int argc, char **argv, char *accepted_opt,
+	GOptionEntry *custom_opt, struct shellfront_term_conf *default_config) {
+	int unparsed_argc = argc;
+	char **unparsed_argv = malloc(sizeof (char *) * argc);
+	memcpy(unparsed_argv, argv, sizeof (char *) * argc);
+	struct err_state state = _shellfront_parse(argc, argv, accepted_opt, custom_opt, default_config);
+	// parse error
+	if (state.has_error) return state;
 	// program path for hashable identifier
-	data->term_conf->cmd = data->argv[0];
-	struct err_state state = _shellfront_initialize(data);
+	default_config->cmd = unparsed_argv[0];
+	struct _shellfront_env_data data = {
+		.term_conf = default_config,
+		.is_integrate = true,
+		.argc = unparsed_argc,
+		.argv = unparsed_argv
+	};
+	state = _shellfront_initialize(&data);
 	// if executed with no error, indicate it is the original process
 	if (!state.has_error) strcpy(state.errmsg, _("Original process, please end"));
 	return state;
@@ -58,21 +71,18 @@ struct err_state shellfront_interpret(int argc, char **argv) {
 
 struct err_state shellfront_catch(int argc, char **argv, char *accepted_opt,
 	GOptionEntry *custom_opt, struct shellfront_term_conf default_config) {
+	// non-NULL if forked, return no error to indicate forked, or return error
+	if (_shellfront_fork_state != NULL) {
+		GOptionContext *option_context = g_option_context_new(NULL);
+		g_option_context_add_main_entries(option_context, custom_opt, NULL);
+		g_option_context_parse(option_context, &argc, &argv, NULL);//TODO: Handle Error
+		g_option_context_free(option_context);
+		return *_shellfront_fork_state;
+	}
 	// this function is intended to catch itself as command
 	if (strchr(accepted_opt, 'c') != NULL) {
 		return define_error(_("ShellFront integration does not allow cmd option"));
 	}
-	// non-NULL if forked, return no error to indicate forked, or return error
-	if (_shellfront_fork_state != NULL) return *_shellfront_fork_state; //FIXME: Apply custom options
-	struct err_state state = _shellfront_parse(argc, argv, accepted_opt, custom_opt, &default_config);
-	// parse error
-	if (state.has_error) return state;
-	struct _shellfront_env_data data = {
-		.term_conf = &default_config,
-		.is_integrate = true,
-		.argc = argc,
-		.argv = argv
-	};
 	// return the state of the process
-	return _SHELLFRONT_START_PROCESS(&data, ttyname(STDIN_FILENO));
+	return _SHELLFRONT_START_PROCESS(argc, argv, accepted_opt, custom_opt, &default_config);
 }
