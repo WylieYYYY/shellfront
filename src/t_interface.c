@@ -1,4 +1,5 @@
 #include "shellfront.h"
+#include "test.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -11,10 +12,9 @@ void test_interface_lock(void);
 
 void _shellfront_sig_exit(int signo);
 
-static int test_state;
 void mock_exit(int status) {
 	assert(status == 0);
-	test_state = 1;
+	add_test_state(TEST_STATE_EXITED);
 }
 
 void test_interface() {
@@ -26,5 +26,5 @@ void test_interface() {
 	_shellfront_sig_exit(1);
 	FILE *check_lock = fopen("/tmp/shellfront.123.mockproc", "r");
 	assert(check_lock == NULL);
-	assert(test_state == 1);
+	assert_test_state(1, TEST_STATE_EXITED);
 }

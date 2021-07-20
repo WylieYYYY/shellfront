@@ -1,4 +1,5 @@
 #include "shellfront.h"
+#include "test.h"
 
 #include <assert.h>
 #include <gtk/gtk.h>
@@ -11,34 +12,33 @@ void _shellfront_window_destroy(GtkWindow *window, void *user_data);
 void _shellfront_window_gravitate(int window_width, int window_height,
 	GdkRectangle *workarea, struct shellfront_term_conf *config);
 
-static int test_state;
 static GtkWindow *test_window = (GtkWindow *)0xDEADBEEF;
 void mock_gtk_window_close(GtkWindow *window) {
 	assert(window == (GtkWindow *)0xDEADBEEF);
-	test_state = 1;
+	add_test_state(TEST_STATE_WINDOW_CLOSED);
 }
 void mock_gtk_window_present(GtkWindow *window) {
 	assert(window == (GtkWindow *)0xDEADBEEF);
-	test_state = 0;
+	add_test_state(TEST_STATE_WINDOW_PRESENTED);
 }
 void mock_sig_exit(int signo) {
 	assert(signo == 2);
-	test_state = 2;
+	add_test_state(TEST_STATE_EXITED);
 }
 
 void test_gtkfunc_helper() {
 	// void t_shellfront_erminal_exit(VteTerminal *terminal, int status, GtkWindow *window)
 	_shellfront_terminal_exit(NULL, 0, test_window);
-	assert(test_state == 1);
+	assert_test_state(1, TEST_STATE_WINDOW_CLOSED);
 	// void _shellfront_window_show(GtkWindow *window, void *user_data)
 	_shellfront_window_show(test_window, NULL);
-	assert(test_state == 0);
+	assert_test_state(1, TEST_STATE_WINDOW_PRESENTED);
 	// void _shellfront_window_focus_out(GtkWidget *widget, GdkEvent *event, GtkWindow *window)
 	_shellfront_window_focus_out(NULL, NULL, test_window);
-	assert(test_state == 1);
+	assert_test_state(1, TEST_STATE_WINDOW_CLOSED);
 	// void _shellfront_window_destroy(GtkWindow *window, void *user_data)
 	_shellfront_window_destroy(NULL, NULL);
-	assert(test_state == 2);
+	assert_test_state(1, TEST_STATE_EXITED);
 	// void _shellfront_window_gravitate(int *window_width, int *window_height,
 	// 	GdkRectangle *workarea, struct shellfront_term_conf *config)
 	// grav = 9

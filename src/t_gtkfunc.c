@@ -1,4 +1,5 @@
 #include "shellfront.h"
+#include "test.h"
 
 #include <assert.h>
 #include <gtk/gtk.h>
@@ -14,13 +15,12 @@ void _shellfront_gtk_activate(GtkApplication *app, struct shellfront_term_conf *
 void _shellfront_window_show(GtkWindow *window, void *user_data);
 void _shellfront_terminal_exit(VteTerminal *terminal, int status, GtkWindow *window);
 
-static int test_state = 1;
 void mock_err_string_arg(FILE *fp, char *fmt, char *str) {
-	assert(test_state != 0);
+	assert_test_state(1, TEST_STATE_NONE);
 	assert(fp == stderr);
 	assert(strcmp(fmt, "%s\n") == 0);
 	assert(str != NULL);
-	test_state = 0;
+	add_test_state(TEST_STATE_ERROR_STATE_PRINTED);
 }
 static GtkWindow *window;
 VteTerminal *test_terminal;
@@ -31,7 +31,7 @@ GtkWidget *mock_gtk_application_window_new(GtkApplication *application) {
 void mock_vte_terminal_set_size(VteTerminal *terminal, long columns, long rows) {
 	assert(terminal == test_terminal);
 	assert(columns == 80 && rows == 24);
-	test_state++;
+	add_test_state(TEST_STATE_TERMINAL_SIZE_SET);
 }
 void mock_vte_terminal_spawn_async(VteTerminal *terminal, VtePtyFlags pty_flags,
 		const char *working_directory, char **argv, char **envv, GSpawnFlags spawn_flags_,
@@ -46,7 +46,7 @@ void mock_vte_terminal_spawn_async(VteTerminal *terminal, VtePtyFlags pty_flags,
 	assert(argv[3] == NULL);
 	assert(spawn_flags_ == G_SPAWN_SEARCH_PATH);
 	assert(timeout == -1);
-	test_state++;
+	add_test_state(TEST_STATE_TERMINAL_SPAWNED);
 }
 void mock_gtk_widget_show_all(GtkWidget *widget) {
 	// test once, interactive
@@ -70,8 +70,8 @@ void mock_gtk_widget_show_all(GtkWidget *widget) {
 	GList *children = gtk_container_get_children(GTK_CONTAINER(window));
 	assert(VTE_TERMINAL(children->data) == test_terminal);
 	g_list_free(children);
-	assert(test_state == 2);
-	test_state++;
+	assert_test_state(2, TEST_STATE_TERMINAL_SIZE_SET, TEST_STATE_TERMINAL_SPAWNED);
+	add_test_state(TEST_STATE_WIDGET_SHOWED);
 }
 
 void test_gtkfunc() {
@@ -93,12 +93,11 @@ void test_gtkfunc() {
 		G_SIGNAL_MATCH_ID | G_SIGNAL_MATCH_FUNC | G_SIGNAL_MATCH_DATA,
 		sigid, 0, NULL, &_shellfront_window_focus_out, window);
 	assert(sighandler != 0);
-	assert(test_state == 1);
 	assert(gtk_window_get_icon(window) == NULL);
 	// test icon error
 	config.icon = "/";
 	_shellfront_apply_opt(window, test_terminal, &config);
-	assert(test_state == 0);
+	assert_test_state(1, TEST_STATE_ERROR_STATE_PRINTED);
 	assert(gtk_window_get_icon(window) == NULL);
 	gtk_widget_destroy(GTK_WIDGET(window));
 	// void gtk_activate(GtkApplication *app, struct term_conf *config)
@@ -110,7 +109,7 @@ void test_gtkfunc() {
 	config.cmd = "command";
 	config.grav = 5;
 	_shellfront_gtk_activate(NULL, &config);
-	assert(test_state == 3);
+	assert_test_state(1, TEST_STATE_WIDGET_SHOWED);
 	int x, y;
 	gtk_window_get_position(window, &x, &y);
 	assert(x != 0 && y != 0);
