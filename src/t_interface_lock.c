@@ -52,7 +52,7 @@ void test_interface_lock() {
 	fread(buf, 1, 10, tmpfp);
 	assert(strcmp(buf, "       123") == 0);
 	fclose(tmpfp);
-	assert_test_state(1, TEST_STATE_SIGNAL_HANDLER_REGISTERED);
+	assert_test_state(TEST_STATE_SIGNAL_HANDLER_REGISTERED);
 	// existing instance error
 	state = _shellfront_lock_process(123);
 	assert(state.has_error);
@@ -70,7 +70,7 @@ remove -1 flag or '/tmp/shellfront.mock.lock' to unlock") == 0);
 	state = _shellfront_unlock_process(exe_name);
 	assert(state.has_error);
 	assert(strcmp(state.errmsg, "PID mismatch in record, use system kill tool") == 0);
-	assert_test_state(1, TEST_STATE_WILL_BE_INTEGRATION);
+	assert_test_state(TEST_STATE_WILL_BE_INTEGRATION);
 	clear_test_state();
 	// no error
 	_shellfront_tmpid = malloc(26);
@@ -80,7 +80,7 @@ remove -1 flag or '/tmp/shellfront.mock.lock' to unlock") == 0);
 	strcpy(exe_name, "shellfront");
 	state = _shellfront_unlock_process(exe_name);
 	assert(!state.has_error);
-	assert_test_state(1, TEST_STATE_PROCESS_KILLED);
+	assert_test_state(TEST_STATE_PROCESS_KILLED);
 	// no instance error
 	_shellfront_tmpid = malloc(26);
 	strcpy(_shellfront_tmpid, "/tmp/shellfront.fake.lock");

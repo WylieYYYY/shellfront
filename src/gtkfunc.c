@@ -8,6 +8,7 @@
 #include <vte/vte.h>
 
 #ifdef UNIT_TEST
+	#include <string.h>
 	void mock_gtk_window_close(GtkWindow *window);
 	#define gtk_window_close(x) mock_gtk_window_close(x)
 	void mock_gtk_window_present(GtkWindow *window);
@@ -30,6 +31,11 @@
 		GDestroyNotify child_setup_data_destroy, int timeout, GCancellable *cancellable,
 		VteTerminalSpawnAsyncCallback callback, void *user_data);
 	#define vte_terminal_spawn_async(a,b,c,d,e,f,g,h,i,j,k,l,m) mock_vte_terminal_spawn_async(a,b,c,d,e,f,g,h,i,j,k,l,m)
+	void mock_configure_terminal(VteTerminal *terminal, struct _shellfront_env_data *data);
+	#define _SHELLFRONT_CONFIGURE_TERMINAL(x,y) mock_configure_terminal(x,y)
+	#define vte_get_user_shell() strdup("/bin/bash")
+#else
+	#define _SHELLFRONT_CONFIGURE_TERMINAL(x,y) _shellfront_configure_terminal(x,y)
 #endif
 
 struct err_state *_shellfront_fork_state = NULL;
@@ -131,7 +137,7 @@ void _shellfront_gtk_activate(GtkApplication *app, struct _shellfront_env_data *
 	vte_terminal_set_size(terminal, config->width, config->height);
 	// when command ends, terminal exits
 	g_signal_connect(terminal, "child-exited", G_CALLBACK(_shellfront_terminal_exit), window);
-	_shellfront_configure_terminal(terminal, data);
+	_SHELLFRONT_CONFIGURE_TERMINAL(terminal, data);
 
 	// put the terminal into the window and show both
 	gtk_container_add(GTK_CONTAINER(window), GTK_WIDGET(terminal));

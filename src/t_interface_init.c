@@ -8,10 +8,9 @@
 #include <unistd.h>
 
 extern char *_shellfront_tmpid;
-void _shellfront_gtk_activate(GtkApplication *app, struct shellfront_term_conf *config);
-struct err_state _shellfront_initialize(struct shellfront_term_conf *config, bool is_integrate);
+void _shellfront_gtk_activate(GtkApplication *app, struct _shellfront_env_data *data);
+struct err_state _shellfront_initialize(struct _shellfront_env_data *data);
 
-static struct shellfront_term_conf config;
 int mock_g_application_run(GApplication *application, int argc, char **argv) {
 	// check application id by process id
 	const char *appid = g_application_get_application_id(application);
@@ -20,7 +19,7 @@ int mock_g_application_run(GApplication *application, int argc, char **argv) {
 	unsigned int sigid = g_signal_lookup("activate", G_TYPE_FROM_INSTANCE(application));
 	unsigned long sighandler = g_signal_handler_find(application,
 		G_SIGNAL_MATCH_ID | G_SIGNAL_MATCH_FUNC | G_SIGNAL_MATCH_DATA,
-		sigid, 0, NULL, &_shellfront_gtk_activate, &config);
+		sigid, 0, NULL, &_shellfront_gtk_activate, &mock_env_data);
 	// handler exists
 	assert(sighandler != 0);
 	// needs to handle non-binary error code
@@ -51,40 +50,48 @@ void test_interface_init() {
 	// struct err_state _shellfront_initialize(struct shellfront_term_conf *config)
 	// test no lock condition flags (GTK error)
 	add_test_state(TEST_STATE_WILL_RETURN_ERROR);
-	config = shellfront_term_conf_default;
-	struct err_state state = _shellfront_initialize(&config, true);
+	struct shellfront_term_conf config = shellfront_term_conf_default;
+	mock_env_data = ((struct _shellfront_env_data) {
+		.term_conf = &config,
+		.is_integrate = true,
+		.argc = 0,
+		.argv = NULL
+	});
+	struct err_state state = _shellfront_initialize(&mock_env_data);
 	assert(state.has_error == 2);
 	assert(strcmp(state.errmsg, "GTK error") == 0);
 	clear_test_state();
 	// test no lock condition flags (no error)
-	state = _shellfront_initialize(&config, true);
+	state = _shellfront_initialize(&mock_env_data);
 	assert(!state.has_error);
 	// test kill
 	config.kill = true;
-	state = _shellfront_initialize(&config, true);
+	state = _shellfront_initialize(&mock_env_data);
 	assert(!state.has_error);
-	assert_test_state(1, TEST_STATE_PROCESS_UNLOCKED);
+	assert_test_state(TEST_STATE_PROCESS_UNLOCKED);
 	// test once (lock error)
 	add_test_state(TEST_STATE_WILL_RETURN_ERROR);
 	config.kill = false;
 	config.once = true;
-	state = _shellfront_initialize(&config, true);
+	state = _shellfront_initialize(&mock_env_data);
 	assert(state.has_error);
-	assert_test_state(1, TEST_STATE_PROCESS_LOCKED);
+	assert_test_state(TEST_STATE_PROCESS_LOCKED);
 	// test once (no error)
-	state = _shellfront_initialize(&config, true);
+	mock_env_data.is_integrate = false;
+	state = _shellfront_initialize(&mock_env_data);
 	assert(!state.has_error);
 	assert(strcmp(state.errmsg, "") == 0);
+	mock_env_data.is_integrate = true;
 	// test toggle and lock file does not exist
 	config.cmd = "hi";
 	config.once = false;
 	config.toggle = true;
-	state = _shellfront_initialize(&config, true);
+	state = _shellfront_initialize(&mock_env_data);
 	assert(!state.has_error);
-	assert_test_state(1, TEST_STATE_PROCESS_LOCKED);
+	assert_test_state(TEST_STATE_PROCESS_LOCKED);
 	// test toggle and lock file exists
 	add_test_state(TEST_STATE_WILL_HAVE_LOCK_FILE);
-	state = _shellfront_initialize(&config, true);
+	state = _shellfront_initialize(&mock_env_data);
 	assert(!state.has_error);
-	assert_test_state(1, TEST_STATE_PROCESS_UNLOCKED);
+	assert_test_state(TEST_STATE_PROCESS_UNLOCKED);
 }

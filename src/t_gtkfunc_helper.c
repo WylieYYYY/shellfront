@@ -27,18 +27,18 @@ void mock_sig_exit(int signo) {
 }
 
 void test_gtkfunc_helper() {
-	// void t_shellfront_erminal_exit(VteTerminal *terminal, int status, GtkWindow *window)
+	// void t_shellfront_terminal_exit(VteTerminal *terminal, int status, GtkWindow *window)
 	_shellfront_terminal_exit(NULL, 0, test_window);
-	assert_test_state(1, TEST_STATE_WINDOW_CLOSED);
+	assert_test_state(TEST_STATE_WINDOW_CLOSED);
 	// void _shellfront_window_show(GtkWindow *window, void *user_data)
 	_shellfront_window_show(test_window, NULL);
-	assert_test_state(1, TEST_STATE_WINDOW_PRESENTED);
+	assert_test_state(TEST_STATE_WINDOW_PRESENTED);
 	// void _shellfront_window_focus_out(GtkWidget *widget, GdkEvent *event, GtkWindow *window)
 	_shellfront_window_focus_out(NULL, NULL, test_window);
-	assert_test_state(1, TEST_STATE_WINDOW_CLOSED);
+	assert_test_state(TEST_STATE_WINDOW_CLOSED);
 	// void _shellfront_window_destroy(GtkWindow *window, void *user_data)
 	_shellfront_window_destroy(NULL, NULL);
-	assert_test_state(1, TEST_STATE_EXITED);
+	assert_test_state(TEST_STATE_EXITED);
 	// void _shellfront_window_gravitate(int *window_width, int *window_height,
 	// 	GdkRectangle *workarea, struct shellfront_term_conf *config)
 	// grav = 9

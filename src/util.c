@@ -10,6 +10,8 @@
 #ifdef UNIT_TEST
 	char *mock_realpath(const char *path, char *resolved_path);
 	#define realpath(x,y) mock_realpath(x,y)
+	void mock_g_clear_error(GError **err);
+	#define g_clear_error(x) mock_g_clear_error(x)
 #endif
 
 struct err_state define_error(char *msg) {

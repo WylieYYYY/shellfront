@@ -2,11 +2,13 @@
 #define TEST_H
 
 #include <assert.h>
-#include <stdarg.h>
+#include <glib.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 enum test_states {
 	TEST_STATE_NONE,
+	TEST_STATE_META_ASSERTED,
 	// t_gtkfunc_helper
 	TEST_STATE_WINDOW_CLOSED,
 	TEST_STATE_WINDOW_PRESENTED,
@@ -21,6 +23,7 @@ enum test_states {
 	TEST_STATE_PROCESS_LOCKED,
 	TEST_STATE_PROCESS_UNLOCKED,
 	TEST_STATE_WILL_HAVE_LOCK_FILE,
+	// t_interface_init, t_util
 	TEST_STATE_WILL_RETURN_ERROR,
 	// t_interface_lock
 	TEST_STATE_PROCESS_KILLED,
@@ -33,14 +36,22 @@ enum test_states {
 	TEST_STATE_WILL_FAIL_START_PROCESS
 };
 
+struct _shellfront_env_data {
+	// configuration of ShellFront
+	struct shellfront_term_conf *term_conf;
+	// whether ShellFront is called with shellfront_catch()
+	int is_integrate;
+	// argument count of original main()
+	int argc;
+	// argument vector of original main()
+	char **argv;
+};
+
 extern enum test_states test_state;
+extern GError mock_gerror;
+extern struct _shellfront_env_data mock_env_data;
 
-static inline void add_test_state(enum test_states state) {
-	test_state |= 1 << state - 1;
-}
-
-static inline bool test_state_contains(enum test_states state) {
-	if (state == TEST_STATE_NONE) return test_state == TEST_STATE_NONE;
+static inline bool _check_flag_from_enum(enum test_states state) {
 	return (test_state & (1 << state - 1)) != 0;
 }
 
@@ -48,16 +59,29 @@ static inline void clear_test_state() {
 	test_state = TEST_STATE_NONE;
 }
 
-static inline void assert_test_state(int count, ...) {
-	va_list argptr;
-	va_start(argptr, count);
-	for (int i = 0; i < count; i++) {
-		enum test_states state = va_arg(argptr, enum test_states);
-		if (state == TEST_STATE_NONE) assert(test_state == TEST_STATE_NONE);
-		else assert((test_state & (1 << state - 1)) != 0);
-	}
-	clear_test_state();
-	va_end(argptr);
+static inline void add_test_state(enum test_states state) {
+	if (_check_flag_from_enum(TEST_STATE_META_ASSERTED)) clear_test_state();
+	test_state |= 1 << state - 1;
 }
+
+static inline bool test_state_contains(enum test_states state) {
+	if (_check_flag_from_enum(TEST_STATE_META_ASSERTED)) clear_test_state();
+	if (state == TEST_STATE_NONE) {
+		return test_state == TEST_STATE_NONE || test_state == TEST_STATE_META_ASSERTED;
+	}
+	return _check_flag_from_enum(state);
+}
+
+static inline void _assert_test_state(char *filename, int line, enum test_states state) {
+	printf("Assertion in %s at line %i. Current state: %i.\n", filename, line, test_state);
+	if (state == TEST_STATE_NONE) {
+		if (_check_flag_from_enum(TEST_STATE_META_ASSERTED)) clear_test_state();
+		assert(test_state == TEST_STATE_NONE || test_state == TEST_STATE_META_ASSERTED);
+	}
+	else assert(_check_flag_from_enum(state));
+	add_test_state(TEST_STATE_META_ASSERTED);
+}
+
+#define assert_test_state(x) _assert_test_state(__FILE__,__LINE__,x)
 
 #endif

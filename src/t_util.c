@@ -1,9 +1,18 @@
-#include "internal.h"
 #include "shellfront.h"
+#include "test.h"
 
 #include <assert.h>
+#include <glib.h>
 #include <stdlib.h>
 #include <string.h>
+
+struct err_state define_error(char *msg);
+int _shellfront_parse_size_str(char *size, long *x, long *y);
+int _shellfront_parse_loc_str(char *loc, int *x, int *y);
+unsigned long djb_hash(char *str);
+char *sxprintf(char *fmt, ...);
+char *_shellfront_prepare_hashable(char *cmd, char **exe_name, int is_integrate);
+struct err_state _shellfront_gerror_to_err_state(GError *gerror);
 
 char *mock_realpath(const char *path, char *resolved_path) {
 	assert(resolved_path == NULL);
@@ -12,6 +21,15 @@ char *mock_realpath(const char *path, char *resolved_path) {
 	strcpy(resolved_path, "/bin/");
 	strcpy(resolved_path + 5, path);
 	return resolved_path;
+}
+
+void mock_g_clear_error(GError **err) {
+	if (*err == NULL) {
+		assert_test_state(TEST_STATE_NONE);
+	} else {
+		assert_test_state(TEST_STATE_WILL_RETURN_ERROR);
+		if (*err != &mock_gerror) g_clear_error(err);
+	}
 }
 
 void test_util() {
@@ -50,7 +68,7 @@ void test_util() {
 	// char *_shellfront_prepare_hashable(char *cmd, char **exe_name, int is_integrate)
 	// integrate use PATH
 	char *exe_name;
-	char *prepared_cmd = _shellfront_prepare_hashable("exe --no-shellfront >/dev/pty/x", &exe_name, 1);
+	char *prepared_cmd = _shellfront_prepare_hashable("exe --no-shellfront", &exe_name, 1);
 	assert(strcmp(exe_name, "exe") == 0);
 	assert(strcmp(prepared_cmd, "exe --no-shellfront") == 0);
 	free(exe_name);
@@ -62,7 +80,7 @@ void test_util() {
 	free(exe_name);
 	free(prepared_cmd);
 	// integrate no PATH
-	prepared_cmd = _shellfront_prepare_hashable("rel_path/exe --no-shellfront >/dev/pty/x", &exe_name, 1);
+	prepared_cmd = _shellfront_prepare_hashable("rel_path/exe --no-shellfront", &exe_name, 1);
 	assert(strcmp(exe_name, "exe") == 0);
 	assert(strcmp(prepared_cmd, "/bin/rel_path/exe --no-shellfront") == 0);
 	free(exe_name);
@@ -73,4 +91,14 @@ void test_util() {
 	assert(strcmp(prepared_cmd, "/bin/rel_path/exe") == 0);
 	free(exe_name);
 	free(prepared_cmd);
+	// struct err_state _shellfront_gerror_to_err_state(GError *gerror)
+	// gerror is NULL
+	state = _shellfront_gerror_to_err_state(NULL);
+	assert(!state.has_error);
+	// gerror is not NULL
+	add_test_state(TEST_STATE_WILL_RETURN_ERROR);
+	state = _shellfront_gerror_to_err_state(&mock_gerror);
+	assert(state.has_error == 2);
+	assert(strcmp(state.errmsg, "Error message") == 0);
+	clear_test_state();
 }

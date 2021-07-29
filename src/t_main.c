@@ -7,6 +7,8 @@ void test_gtkfunc(void);
 void test_libfunc(void);
 
 enum test_states test_state;
+GError mock_gerror = { .code = 2, .message = "Error message" };
+struct _shellfront_env_data mock_env_data;
 
 int main(int argc, char **argv) {
 	test_util();

@@ -26,5 +26,5 @@ void test_interface() {
 	_shellfront_sig_exit(1);
 	FILE *check_lock = fopen("/tmp/shellfront.123.mockproc", "r");
 	assert(check_lock == NULL);
-	assert_test_state(1, TEST_STATE_EXITED);
+	assert_test_state(TEST_STATE_EXITED);
 }

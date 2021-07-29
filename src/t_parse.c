@@ -1,4 +1,5 @@
 #include "shellfront.h"
+#include "test.h"
 
 #include <assert.h>
 #include <gtk/gtk.h>
@@ -60,10 +61,11 @@ void test_parse() {
 	assert(strcmp(state.errmsg, "Conflicting arguments, see README for usage") == 0);
 	// GTK error
 	config.kill = 0;
-	GError gtkerr = { .code = 1, .message = "GTK error" };
-	state = _shellfront_validate_opt("1,2", "300x200", &config, &gtkerr);
-	assert(state.has_error);
-	assert(strcmp(state.errmsg, "GTK error") == 0);
+	add_test_state(TEST_STATE_WILL_RETURN_ERROR);
+	state = _shellfront_validate_opt("1,2", "300x200", &config, &mock_gerror);
+	assert(state.has_error == 2);
+	assert(strcmp(state.errmsg, "Error message") == 0);
+	clear_test_state();
 	// GOptionEntry *_shellfront_construct_opt(const char *builtin, GOptionEntry *custom,
 	//     struct shellfront_term_conf *config, char **locstr, char **sizestr)
 	// no builtin, no custom
@@ -102,7 +104,8 @@ void test_parse() {
 	assert(options[0].short_name == 'g' && options[1].short_name == 'k');
 	assert(strcmp(options[2].long_name, "dummy1") == 0);
 	assert(strcmp(options[3].long_name, "dummy2") == 0);
-	// struct err_state _shellfront_parse(int argc, char **argv, struct shellfront_term_conf *config)
+	// struct err_state _shellfront_parse(int argc, char **argv, char *builtin_opt,
+	//     GOptionEntry *custom_opt, struct shellfront_term_conf *config)
 	// no error (all flags except ispopup and killopt, disallow icon)
 	config.toggle = 0;
 	char **argv = (char *[]) { "shellfront", "-1iTg", "3", "-l",

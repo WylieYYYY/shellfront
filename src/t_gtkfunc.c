@@ -11,12 +11,13 @@ void test_gtkfunc_helper(void);
 void _shellfront_apply_opt(GtkWindow *window, VteTerminal *terminal, struct shellfront_term_conf *config);
 void _shellfront_window_focus_out(GtkWidget *widget, GdkEvent *event, GtkWindow *window);
 void _shellfront_window_destroy(GtkWindow *window, void *user_data);
-void _shellfront_gtk_activate(GtkApplication *app, struct shellfront_term_conf *config);
+void _shellfront_configure_terminal(VteTerminal *terminal, struct _shellfront_env_data *data);
+void _shellfront_gtk_activate(GtkApplication *app, struct _shellfront_env_data *data);
 void _shellfront_window_show(GtkWindow *window, void *user_data);
 void _shellfront_terminal_exit(VteTerminal *terminal, int status, GtkWindow *window);
 
 void mock_err_string_arg(FILE *fp, char *fmt, char *str) {
-	assert_test_state(1, TEST_STATE_NONE);
+	assert_test_state(TEST_STATE_NONE);
 	assert(fp == stderr);
 	assert(strcmp(fmt, "%s\n") == 0);
 	assert(str != NULL);
@@ -70,8 +71,18 @@ void mock_gtk_widget_show_all(GtkWidget *widget) {
 	GList *children = gtk_container_get_children(GTK_CONTAINER(window));
 	assert(VTE_TERMINAL(children->data) == test_terminal);
 	g_list_free(children);
-	assert_test_state(2, TEST_STATE_TERMINAL_SIZE_SET, TEST_STATE_TERMINAL_SPAWNED);
+	int x, y;
+	gtk_window_get_position(window, &x, &y);
+	assert(x == 0 && y == 0);
+	assert_test_state(TEST_STATE_TERMINAL_SIZE_SET);
+	assert_test_state(TEST_STATE_TERMINAL_SPAWNED);
 	add_test_state(TEST_STATE_WIDGET_SHOWED);
+}
+
+void mock_configure_terminal(VteTerminal *terminal, struct _shellfront_env_data *data) {
+	assert(terminal == test_terminal);
+	assert(data == &mock_env_data);
+	add_test_state(TEST_STATE_TERMINAL_SPAWNED);
 }
 
 void test_gtkfunc() {
@@ -97,7 +108,7 @@ void test_gtkfunc() {
 	// test icon error
 	config.icon = "/";
 	_shellfront_apply_opt(window, test_terminal, &config);
-	assert_test_state(1, TEST_STATE_ERROR_STATE_PRINTED);
+	assert_test_state(TEST_STATE_ERROR_STATE_PRINTED);
 	assert(gtk_window_get_icon(window) == NULL);
 	gtk_widget_destroy(GTK_WIDGET(window));
 	// void gtk_activate(GtkApplication *app, struct term_conf *config)
@@ -108,12 +119,20 @@ void test_gtkfunc() {
 	config.icon = "favicon.png";
 	config.cmd = "command";
 	config.grav = 5;
-	_shellfront_gtk_activate(NULL, &config);
-	assert_test_state(1, TEST_STATE_WIDGET_SHOWED);
+	mock_env_data.term_conf = &config;
+	_shellfront_gtk_activate(NULL, &mock_env_data);
+	assert_test_state(TEST_STATE_WIDGET_SHOWED);
 	int x, y;
 	gtk_window_get_position(window, &x, &y);
 	assert(x != 0 && y != 0);
 	assert(gtk_window_get_icon(window) != NULL);
 	gtk_widget_destroy(GTK_WIDGET(test_terminal));
 	gtk_widget_destroy(GTK_WIDGET(window));
+	// void _shellfront_configure_terminal(VteTerminal *terminal, struct _shellfront_env_data *data)
+	// integrate, child process
+	mock_env_data.is_integrate = 1;
+	// no integrate
+	mock_env_data.is_integrate = 0;
+	_shellfront_configure_terminal(test_terminal, &mock_env_data);
+	assert_test_state(TEST_STATE_TERMINAL_SPAWNED);
 }
