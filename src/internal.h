@@ -26,7 +26,7 @@ struct err_state _shellfront_gerror_to_err_state(GError *gerror);
 // gtkfunc.c
 
 // the error state after forking, NULL if unforked, public to be seen by main()
-extern struct err_state *_shellfront_fork_state;
+extern struct err_state _shellfront_fork_state;
 // data that are used by GTK+ functions
 struct _shellfront_env_data {
 	// configuration of ShellFront

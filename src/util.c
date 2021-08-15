@@ -15,8 +15,7 @@
 #endif
 
 struct err_state define_error(char *msg) {
-	struct err_state err;
-	err.has_error = 1;
+	struct err_state err = { .has_error = 1 };
 	strcpy(err.errmsg, msg);
 	return err;
 }

@@ -1,3 +1,4 @@
+#include "internal.h"
 #include "test.h"
 
 void test_util(void);

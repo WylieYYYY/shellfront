@@ -1,3 +1,4 @@
+#include "internal.h"
 #include "shellfront.h"
 #include "test.h"
 

@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #ifdef UNIT_TEST
 	#define getpid() 123
@@ -111,7 +112,7 @@ struct err_state _shellfront_initialize(struct _shellfront_env_data *data) {
 	}
 
 	// get this process's process ID
-	int pid = getpid();
+	pid_t pid = getpid();
 	if (config->once) {
 		struct err_state state = _SHELLFRONT_LOCK_PROCESS(pid);
 		if (state.has_error) return state;
@@ -119,7 +120,7 @@ struct err_state _shellfront_initialize(struct _shellfront_env_data *data) {
 	} else free(_shellfront_tmpid);
 
 	// PID is guarenteed unique and can be used as APPID
-	char *appid = sxprintf("shellfront.proc%i", pid);
+	char *appid = sxprintf("shellfront.proc%li", pid);
 	GtkApplication *app = gtk_application_new(appid, G_APPLICATION_FLAGS_NONE);
 	free(appid);
 	// link terminal setup function

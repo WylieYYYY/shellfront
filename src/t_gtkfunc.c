@@ -1,16 +1,20 @@
+#include "internal.h"
 #include "shellfront.h"
 #include "test.h"
 
 #include <assert.h>
 #include <gtk/gtk.h>
 #include <string.h>
+#include <unistd.h>
 #include <vte/vte.h>
 
 void test_gtkfunc_helper(void);
 
+extern struct err_state _shellfront_fork_state;
 void _shellfront_apply_opt(GtkWindow *window, VteTerminal *terminal, struct shellfront_term_conf *config);
 void _shellfront_window_focus_out(GtkWidget *widget, GdkEvent *event, GtkWindow *window);
 void _shellfront_window_destroy(GtkWindow *window, void *user_data);
+void _shellfront_child_process_setup(int pid, VtePty *pty, struct _shellfront_env_data *data);
 void _shellfront_configure_terminal(VteTerminal *terminal, struct _shellfront_env_data *data);
 void _shellfront_gtk_activate(GtkApplication *app, struct _shellfront_env_data *data);
 void _shellfront_window_show(GtkWindow *window, void *user_data);
@@ -85,6 +89,50 @@ void mock_configure_terminal(VteTerminal *terminal, struct _shellfront_env_data 
 	add_test_state(TEST_STATE_TERMINAL_SPAWNED);
 }
 
+int mock_main(int argc, char **argv) {
+	assert_test_state(TEST_STATE_CHILD_PROCESS_SETUP);
+	assert(argc == mock_env_data.argc);
+	assert(argv == mock_env_data.argv);
+	if (test_state_contains(TEST_STATE_WILL_FAIL_FORK)) {
+		assert(_shellfront_fork_state.has_error);
+		assert(strcmp(_shellfront_fork_state.errmsg, "Fork error") == 0);
+	} else {
+		assert(_shellfront_fork_state.has_error == 2);
+		assert(strcmp(_shellfront_fork_state.errmsg, "Error message") == 0);
+	}
+}
+
+static VtePty *test_pty;
+void mock_vte_pty_child_setup(VtePty *pty) {
+	assert(pty == test_pty);
+	add_test_state(TEST_STATE_CHILD_PROCESS_SETUP);
+}
+
+VtePty *mock_vte_pty_new_sync(VtePtyFlags flags, GCancellable *cancellable, GError **error) {
+	assert(flags == VTE_PTY_DEFAULT);
+	assert(cancellable == NULL);
+	test_pty = vte_pty_new_sync(flags, cancellable, NULL);
+	*error = &mock_gerror;
+	return test_pty;
+}
+
+pid_t mock_fork(VteTerminal *terminal) {
+	assert(_shellfront_fork_state.has_error == 2);
+	assert(strcmp(_shellfront_fork_state.errmsg, "Error message") == 0);
+	assert(vte_terminal_get_pty(terminal) == test_pty);
+	if (test_state_contains(TEST_STATE_WILL_FAIL_FORK)) return -1;
+	if (test_state_contains(TEST_STATE_WILL_BE_PARENT_PROCESS)) return 1;
+	return 0;
+}
+
+void mock__shellfront_child_process_setup(int pid, VtePty *pty, struct _shellfront_env_data *data) {
+	if (test_state_contains(TEST_STATE_WILL_FAIL_FORK)) assert(pid == -1);
+	else assert(pid == 0);
+	assert(pty == test_pty);
+	assert(data == &mock_env_data);
+	add_test_state(TEST_STATE_CHILD_PROCESS_SETUP);
+}
+
 void test_gtkfunc() {
 	test_gtkfunc_helper();
 	// void _shellfront_apply_opt(GtkWindow *window, VteTerminal *terminal, struct term_conf *config)
@@ -126,13 +174,44 @@ void test_gtkfunc() {
 	gtk_window_get_position(window, &x, &y);
 	assert(x != 0 && y != 0);
 	assert(gtk_window_get_icon(window) != NULL);
-	gtk_widget_destroy(GTK_WIDGET(test_terminal));
-	gtk_widget_destroy(GTK_WIDGET(window));
 	// void _shellfront_configure_terminal(VteTerminal *terminal, struct _shellfront_env_data *data)
 	// integrate, child process
 	mock_env_data.is_integrate = 1;
+	add_test_state(TEST_STATE_WILL_RETURN_ERROR);
+	_shellfront_configure_terminal(test_terminal, &mock_env_data);
+	assert_test_state(TEST_STATE_CHILD_PROCESS_SETUP);
+	// integrate, fork error
+	add_test_state(TEST_STATE_WILL_FAIL_FORK);
+	add_test_state(TEST_STATE_WILL_RETURN_ERROR);
+	_shellfront_configure_terminal(test_terminal, &mock_env_data);
+	assert_test_state(TEST_STATE_CHILD_PROCESS_SETUP);
+	// integrate, parent process
+	add_test_state(TEST_STATE_WILL_BE_PARENT_PROCESS);
+	add_test_state(TEST_STATE_WILL_RETURN_ERROR);
+	_shellfront_configure_terminal(test_terminal, &mock_env_data);
+	assert_test_state_not(TEST_STATE_CHILD_PROCESS_SETUP);
 	// no integrate
 	mock_env_data.is_integrate = 0;
 	_shellfront_configure_terminal(test_terminal, &mock_env_data);
 	assert_test_state(TEST_STATE_TERMINAL_SPAWNED);
+	gtk_widget_destroy(GTK_WIDGET(test_terminal));
+	gtk_widget_destroy(GTK_WIDGET(window));
+	// void _shellfront_child_process_setup(int pid, VtePty *pty, struct _shellfront_env_data *data)
+	// once flag
+	mock_env_data.argc = 2;
+	mock_env_data.argv = (char *[]){ "lorem", "ipsum" };
+	_shellfront_child_process_setup(0, test_pty, &mock_env_data);
+	assert_test_state(TEST_STATE_EXITED);
+	// no once flag
+	config.once = 0;
+	_shellfront_child_process_setup(0, test_pty, &mock_env_data);
+	assert_test_state(TEST_STATE_EXITED);
+	// dup error
+	add_test_state(TEST_STATE_WILL_RETURN_ERROR);
+	_shellfront_child_process_setup(0, test_pty, &mock_env_data);
+	clear_test_state();
+	// fork error
+	add_test_state(TEST_STATE_WILL_FAIL_FORK);
+	_shellfront_child_process_setup(-1, test_pty, &mock_env_data);
+	assert_test_state(TEST_STATE_EXITED);
 }

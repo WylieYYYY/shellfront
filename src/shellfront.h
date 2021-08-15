@@ -13,6 +13,7 @@ struct err_state {
 	int has_error;
 	// human readable error message
 	char errmsg[150];
+	int _forked;
 };
 // configuration structure
 struct shellfront_term_conf {

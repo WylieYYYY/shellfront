@@ -72,17 +72,14 @@ struct err_state shellfront_interpret(int argc, char **argv) {
 struct err_state shellfront_catch(int argc, char **argv, char *accepted_opt,
 	GOptionEntry *custom_opt, struct shellfront_term_conf default_config) {
 	// non-NULL if forked, return no error to indicate forked, or return error
-	if (_shellfront_fork_state != NULL) {
+	if (_shellfront_fork_state._forked) {
 		GOptionContext *option_context = g_option_context_new(NULL);
 		g_option_context_add_main_entries(option_context, custom_opt, NULL);
 		GError *gliberr = NULL;
 		g_option_context_parse(option_context, &argc, &argv, &gliberr);
-		if (gliberr != NULL) {
-			struct err_state glib_err_state = _shellfront_gerror_to_err_state(gliberr);
-			_shellfront_fork_state = &glib_err_state;
-		}
+		if (gliberr != NULL) _shellfront_fork_state = _shellfront_gerror_to_err_state(gliberr);
 		g_option_context_free(option_context);
-		return *_shellfront_fork_state;
+		return _shellfront_fork_state;
 	}
 	// this function is intended to catch itself as command
 	if (strchr(accepted_opt, 'c') != NULL) {

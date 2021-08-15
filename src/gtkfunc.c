@@ -8,6 +8,7 @@
 #include <vte/vte.h>
 
 #ifdef UNIT_TEST
+	#include "test.h"
 	#include <string.h>
 	void mock_gtk_window_close(GtkWindow *window);
 	#define gtk_window_close(x) mock_gtk_window_close(x)
@@ -34,11 +35,27 @@
 	void mock_configure_terminal(VteTerminal *terminal, struct _shellfront_env_data *data);
 	#define _SHELLFRONT_CONFIGURE_TERMINAL(x,y) mock_configure_terminal(x,y)
 	#define vte_get_user_shell() strdup("/bin/bash")
+	int mock_main(int argc, char **argv);
+	#define main(x,y) mock_main(x,y)
+	#define dup(x) test_state_contains(TEST_STATE_WILL_RETURN_ERROR)?-1:dup(x)
+	void mock_vte_pty_child_setup(VtePty *pty);
+	#define vte_pty_child_setup(x) mock_vte_pty_child_setup(x)
+	int mock_sigaction(int signum, const struct sigaction *act, struct sigaction *oldact);
+	#define sigaction(x,y,z) mock_sigaction(x,y,z)
+	void mock_exit(int status);
+	#define exit(x) mock_exit(x)
+	VtePty *mock_vte_pty_new_sync(VtePtyFlags flags, GCancellable *cancellable, GError **error);
+	#define vte_pty_new_sync(x,y,z) mock_vte_pty_new_sync(x,y,z)
+	pid_t mock_fork(VteTerminal *terminal);
+	#define fork() mock_fork(terminal)
+	void mock__shellfront_child_process_setup(int pid, VtePty *pty, struct _shellfront_env_data *data);
+	#define _SHELLFRONT_CHILD_PROCESS_SETUP(x,y,z) mock__shellfront_child_process_setup(x,y,z)
 #else
 	#define _SHELLFRONT_CONFIGURE_TERMINAL(x,y) _shellfront_configure_terminal(x,y)
+	#define _SHELLFRONT_CHILD_PROCESS_SETUP(x,y,z) _shellfront_child_process_setup(x,y,z)
 #endif
 
-struct err_state *_shellfront_fork_state = NULL;
+struct err_state _shellfront_fork_state = {};
 
 // change focus to the window
 void _shellfront_window_show(GtkWindow *window, void *user_data) {
@@ -91,26 +108,27 @@ void _shellfront_apply_opt(GtkWindow *window, VteTerminal *terminal, struct shel
 		g_clear_error(&gtkerr);
 	}
 }
+void _shellfront_child_process_setup(int pid, VtePty *pty, struct _shellfront_env_data *data) {
+	if (pid == -1) _shellfront_fork_state = define_error(_("Fork error"));
+	_shellfront_fork_state._forked = 1;
+	// redirect all IO
+	fflush(stderr);
+	int parent_stderr_fd = dup(2);
+	vte_pty_child_setup(pty);
+	if (parent_stderr_fd != -1) dup2(parent_stderr_fd, 2);
+	main(data->argc, data->argv);
+	if (data->term_conf->once) _shellfront_sig_exit(2);
+	else exit(0);
+}
 void _shellfront_configure_terminal(VteTerminal *terminal, struct _shellfront_env_data *data) {
 	if (data->is_integrate) {
 		GError *gtkerr = NULL;
 		VtePty *pty = vte_pty_new_sync(VTE_PTY_DEFAULT, NULL, &gtkerr);
 		// parent process will not check this variable, safe to define here to indicate fork
-		struct err_state gtk_err_state = _shellfront_gerror_to_err_state(gtkerr);
-		_shellfront_fork_state = &gtk_err_state;
+		_shellfront_fork_state = _shellfront_gerror_to_err_state(gtkerr);
 		vte_terminal_set_pty(terminal, pty);
 		pid_t pid = fork();
-		if (pid > 0) return;
-		struct err_state fork_error = define_error(_("Fork error"));
-		if (pid == -1) _shellfront_fork_state = &fork_error;
-		// redirect all IO
-		fflush(stderr);
-		int parent_stderr_fd = dup(2);
-		vte_pty_child_setup(pty);
-		if (parent_stderr_fd != -1) dup2(parent_stderr_fd, 2);
-		main(data->argc, data->argv);
-		if (data->term_conf->once) _shellfront_sig_exit(2);
-		else exit(0);
+		if (pid <= 0) _SHELLFRONT_CHILD_PROCESS_SETUP(pid, pty, data);
 	} else {
 		// using the default terminal shell
 		char *shell = vte_get_user_shell();
