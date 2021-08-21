@@ -9,13 +9,16 @@
 #include <unistd.h>
 
 #ifdef UNIT_TEST
-	struct err_state mock_initialize(struct shellfront_term_conf *config, bool is_integrate);
-	#define _shellfront_initialize(x,y) mock_initialize(x,y)
+	struct err_state mock_initialize(struct _shellfront_env_data *data);
+	#define _shellfront_initialize(x) mock_initialize(x)
 	struct err_state mock_parse(int argc, char **argv, char *builtin_opt,
 		GOptionEntry *custom_opt, struct shellfront_term_conf *config);
 	#define _shellfront_parse(a,b,c,d,e) mock_parse(a,b,c,d,e)
-	struct err_state mock_start_process(char *prog_name, struct shellfront_term_conf *config, char *current_tty);
-	#define _SHELLFRONT_START_PROCESS(x,y,z) mock_start_process(x,y,z)
+	bool mock_g_option_context_parse(GOptionContext *context, int *argc, char ***argv, GError **error);
+	#define g_option_context_parse(a,b,c,d) mock_g_option_context_parse(a,b,c,d)
+	struct err_state mock_start_process(int argc, char **argv, char *accepted_opt,
+		GOptionEntry *custom_opt, struct shellfront_term_conf *default_config);
+	#define _SHELLFRONT_START_PROCESS(a,b,c,d,e) mock_start_process(a,b,c,d,e)
 #else
 	#define _SHELLFRONT_START_PROCESS(a,b,c,d,e) _shellfront_start_process(a,b,c,d,e)
 #endif
@@ -40,6 +43,7 @@ const struct shellfront_term_conf shellfront_term_conf_default = {
 struct err_state _shellfront_start_process(int argc, char **argv, char *accepted_opt,
 	GOptionEntry *custom_opt, struct shellfront_term_conf *default_config) {
 	int unparsed_argc = argc;
+	// does not need to be a deep copy, only needs to maintain references to pointers
 	char **unparsed_argv = malloc(sizeof (char *) * argc);
 	memcpy(unparsed_argv, argv, sizeof (char *) * argc);
 	struct err_state state = _shellfront_parse(argc, argv, accepted_opt, custom_opt, default_config);
@@ -73,11 +77,14 @@ struct err_state shellfront_catch(int argc, char **argv, char *accepted_opt,
 	GOptionEntry *custom_opt, struct shellfront_term_conf default_config) {
 	// non-NULL if forked, return no error to indicate forked, or return error
 	if (_shellfront_fork_state._forked) {
+		const GOptionEntry empty_custom_opt[] = {{ 0 }};
 		GOptionContext *option_context = g_option_context_new(NULL);
-		g_option_context_add_main_entries(option_context, custom_opt, NULL);
+		g_option_context_add_main_entries(option_context, custom_opt == NULL? empty_custom_opt : custom_opt, NULL);
 		GError *gliberr = NULL;
 		g_option_context_parse(option_context, &argc, &argv, &gliberr);
-		if (gliberr != NULL) _shellfront_fork_state = _shellfront_gerror_to_err_state(gliberr);
+		// ignore code zero error as parsing ShellFront options here will yield unknown error and
+		// if there are really problems, it will be detected in the first parsing pass
+		if (gliberr != NULL && gliberr->code != 0) _shellfront_fork_state = _shellfront_gerror_to_err_state(gliberr);
 		g_option_context_free(option_context);
 		return _shellfront_fork_state;
 	}
