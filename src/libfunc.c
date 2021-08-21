@@ -16,6 +16,8 @@
 	#define _shellfront_parse(a,b,c,d,e) mock_parse(a,b,c,d,e)
 	bool mock_g_option_context_parse(GOptionContext *context, int *argc, char ***argv, GError **error);
 	#define g_option_context_parse(a,b,c,d) mock_g_option_context_parse(a,b,c,d)
+	void mock_g_clear_error(GError **err);
+	#define g_clear_error(x) mock_g_clear_error(x)
 	struct err_state mock_start_process(int argc, char **argv, char *accepted_opt,
 		GOptionEntry *custom_opt, struct shellfront_term_conf *default_config);
 	#define _SHELLFRONT_START_PROCESS(a,b,c,d,e) mock_start_process(a,b,c,d,e)
@@ -85,6 +87,7 @@ struct err_state shellfront_catch(int argc, char **argv, char *accepted_opt,
 		// ignore code zero error as parsing ShellFront options here will yield unknown error and
 		// if there are really problems, it will be detected in the first parsing pass
 		if (gliberr != NULL && gliberr->code != 0) _shellfront_fork_state = _shellfront_gerror_to_err_state(gliberr);
+		g_clear_error(&gliberr);
 		g_option_context_free(option_context);
 		return _shellfront_fork_state;
 	}

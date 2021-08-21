@@ -80,10 +80,11 @@ The function above returns an `err_state`, the setup on the program should handl
    - If `errmsg` is `""`, this is currently running in ShellFront, continue the execution of the program.
    - If `errmsg` is not `""`, this is currently in the original process, end the program without executing the main logic.
 
-Sample implementation in C:
+Sample integration in C:
 ```c
 #include "shellfront.h"
 
+#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -93,15 +94,23 @@ int main(int argc, char **argv) {
 	config.width = 20;
 	config.height = 6;
 	config.desc = "- sample implementation for ShellFront";
-	struct err_state state = shellfront_catch(argc, argv, "gl", NULL, config);
+	bool switch = false;
+	GOptionEntry custom_opt[] = {
+		{
+			.long_name = "switch",
+			.arg = G_OPTION_ARG_NONE,
+			.arg_data = &switch,
+			.description = "Switches the message's text"
+		}, { 0 }
+	};
+	struct err_state state = shellfront_catch(argc, argv, "gl", custom_opt, config);
 	if (state.has_error) {
 		fprintf(stderr, state.errmsg);
 		return state.has_error;
 	}
 	else if (strcmp(state.errmsg, "") != 0) return 0;
-	printf("Hi\n");
+	printf("Hi, switch is %s.\n", switch? "on" : "off");
 	fprintf(stderr, "Errors\n");
-	pause();
 	return 0;
 }
 ```

@@ -42,7 +42,7 @@ enum test_states {
 	TEST_STATE_WILL_FAIL_START_PROCESS
 }; // 25
 
-extern enum test_states test_state;
+extern long int test_state;
 extern GError mock_gerror;
 extern struct _shellfront_env_data mock_env_data;
 

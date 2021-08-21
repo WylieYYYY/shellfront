@@ -43,8 +43,9 @@ bool mock_g_option_context_parse(GOptionContext *context, int *argc, char ***arg
 	g_option_context_parse(context, argc, argv, &ignored_error);
 	g_clear_error(&ignored_error);
 	if (test_state_contains(TEST_STATE_WILL_FAIL_PARSE)) {
-		*error = malloc(sizeof (GError));
-		**error = (GError){ .code = 0, .message = "Error message" };
+		add_test_state(TEST_STATE_WILL_RETURN_ERROR);
+		mock_gerror.code = 0;
+		*error = &mock_gerror;
 	} else if (test_state_contains(TEST_STATE_WILL_RETURN_ERROR)) {
 		*error = &mock_gerror;
 	}
@@ -121,6 +122,7 @@ void test_libfunc() {
 	state = shellfront_catch(1, (char *[]){ "shellfront" }, "", NULL, shellfront_term_conf_default);
 	assert(!state.has_error);
 	assert(strcmp(state.errmsg, "") == 0);
+	mock_gerror.code = 2;
 	clear_test_state();
 	// test state[1, 0] (Start process error)
 	_shellfront_fork_state._forked = false;
