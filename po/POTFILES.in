@@ -1,3 +1,4 @@
-src/parse.c
-src/interface.c
-src/libfunc.c
+../src/parse.c
+../src/gtkfunc.c
+../src/interface.c
+../src/libfunc.c

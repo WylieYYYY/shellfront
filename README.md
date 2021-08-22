@@ -111,6 +111,7 @@ int main(int argc, char **argv) {
 	else if (strcmp(state.errmsg, "") != 0) return 0;
 	printf("Hi, switch is %s.\n", switch? "on" : "off");
 	fprintf(stderr, "Errors\n");
+	pause();
 	return 0;
 }
 ```

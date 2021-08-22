@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 2.0.1\n"
 "Report-Msgid-Bugs-To: WylieYYYY <gitlab.com/wylieyyyy/shellfront/-/issues>\n"
-"POT-Creation-Date: 2020-12-03 14:14+0000\n"
+"POT-Creation-Date: 2021-08-22 09:49+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS|WEBSITE>\n"
 "Language-Team: LANGUAGE <LL@li.org|WEBSITE>\n"
@@ -33,96 +33,99 @@ msgstr ""
 msgid "Conflicting arguments, see README for usage"
 msgstr ""
 
-#: ../src/parse.c:39
+#: ../src/parse.c:36
 msgid "ENUM"
 msgstr ""
 
-#: ../src/parse.c:40
+#: ../src/parse.c:37
 msgid "Set gravity for window, 1 = Top-left, 9 = Bottom-right"
 msgstr ""
 
-#: ../src/parse.c:47
+#: ../src/parse.c:44
 msgid "Set the default screen location"
 msgstr ""
 
-#: ../src/parse.c:54
+#: ../src/parse.c:51
 msgid "Set the size"
 msgstr ""
 
-#: ../src/parse.c:60
+#: ../src/parse.c:57
 msgid "TITLE"
 msgstr ""
 
-#: ../src/parse.c:61
+#: ../src/parse.c:58
 msgid "Set the title for application window"
 msgstr ""
 
-#: ../src/parse.c:67
+#: ../src/parse.c:64
 msgid "PATH"
 msgstr ""
 
-#: ../src/parse.c:68
+#: ../src/parse.c:65
 msgid "Set the icon for application window"
 msgstr ""
 
-#: ../src/parse.c:74
+#: ../src/parse.c:71
 msgid "COMMAND"
 msgstr ""
 
-#: ../src/parse.c:75
+#: ../src/parse.c:72
 msgid "Set the command to be executed"
 msgstr ""
 
-#: ../src/parse.c:81
+#: ../src/parse.c:78
 msgid "Application can be interacted with mouse and auto focuses"
 msgstr ""
 
-#: ../src/parse.c:87
+#: ../src/parse.c:84
 msgid "Display as popup instead of a window, implies -1"
 msgstr ""
 
-#: ../src/parse.c:93
+#: ../src/parse.c:90
 msgid "Set if only one instance is allowed"
 msgstr ""
 
-#: ../src/parse.c:99
+#: ../src/parse.c:96
 msgid "Toggle single instance application, implies -1"
 msgstr ""
 
-#: ../src/parse.c:105
+#: ../src/parse.c:102
 msgid "Kill a single instance application according to command"
 msgstr ""
 
-#: ../src/interface.c:51
+#: ../src/gtkfunc.c:112
+msgid "Fork error"
+msgstr ""
+
+#: ../src/interface.c:52
 msgid "No instance of application is running or it is not ran with -1"
 msgstr ""
 
-#: ../src/interface.c:64
+#: ../src/interface.c:65
 msgid "No such process found, use system kill tool"
 msgstr ""
 
-#: ../src/interface.c:72
+#: ../src/interface.c:73
 msgid "PID mismatch in record, use system kill tool"
 msgstr ""
 
-#: ../src/interface.c:85
+#: ../src/interface.c:86
 #, c-format
 msgid "Existing instance is running, remove -1 flag or '%s' to unlock"
 msgstr ""
 
-#: ../src/interface.c:128
+#: ../src/interface.c:130
 msgid "GTK error"
 msgstr ""
 
-#. if executed with no error, indicate it is the original process
-#: ../src/libfunc.c:46
+#: ../src/libfunc.c:64
 msgid "Original process, please end"
 msgstr ""
 
-#: ../src/libfunc.c:52
+#: ../src/libfunc.c:70
 msgid "- simple frontend for shell scripts"
 msgstr ""
 
-#: ../src/libfunc.c:65
+#: ../src/libfunc.c:96
 msgid "ShellFront integration does not allow cmd option"
 msgstr ""
