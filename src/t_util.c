@@ -7,7 +7,8 @@
 #include <string.h>
 
 struct err_state define_error(char *msg);
-int _shellfront_parse_size_str(char *size, long *x, long *y);
+int _shellfront_parse_coordinate(char *size, long *left,
+	long *right, long min, char *delim);
 int _shellfront_parse_loc_str(char *loc, int *x, int *y);
 unsigned long djb_hash(char *str);
 char *sxprintf(char *fmt, ...);
@@ -37,28 +38,19 @@ void test_util() {
 	struct err_state state = define_error("Error occured");
 	assert(state.has_error);
 	assert(strcmp(state.errmsg, "Error occured") == 0);
-	// int _shellfront_parse_size_str(char *size, long *x, long *y, char *delim)
-	long lx, ly;
-	assert(!_shellfront_parse_size_str("0x0", &lx, &ly));
-	assert(!_shellfront_parse_size_str("0x1", &lx, &ly));
-	assert(!_shellfront_parse_size_str("1x0", &lx, &ly));
-	assert(!_shellfront_parse_size_str("11", &lx, &ly));
-	assert(!_shellfront_parse_size_str("1xx1", &lx, &ly));
-	assert(!_shellfront_parse_size_str("1yx1", &lx, &ly));
-	assert(_shellfront_parse_size_str("1x1", &lx, &ly));
-	assert(_shellfront_parse_size_str("1x2", &lx, &ly));
-	assert(lx == 1 && ly == 2);
-	// int _shellfront_parse_loc_str(char *size, int *x, int *y, char *delim)
-	int ix, iy;
-	assert(!_shellfront_parse_loc_str("-1,-1", &ix, &iy));
-	assert(!_shellfront_parse_loc_str("-1,0", &ix, &iy));
-	assert(!_shellfront_parse_loc_str("0,-1", &ix, &iy));
-	assert(!_shellfront_parse_loc_str("00", &ix, &iy));
-	assert(!_shellfront_parse_loc_str("0,,0", &ix, &iy));
-	assert(!_shellfront_parse_loc_str("0`,0", &ix, &iy));
-	assert(_shellfront_parse_loc_str("0,0", &ix, &iy));
-	assert(_shellfront_parse_loc_str("3,4", &ix, &iy));
-	assert(ix == 3 && iy == 4);
+	// int _shellfront_parse_coordinate(char *size, long *left,
+	//     long *right, long min, char *delim)
+	long x, y;
+	assert(!_shellfront_parse_coordinate("0x0", &x, &y, 1, "x"));
+	assert(!_shellfront_parse_coordinate("0x1", &x, &y, 1, "x"));
+	assert(!_shellfront_parse_coordinate("1x0", &x, &y, 1, "x"));
+	assert(!_shellfront_parse_coordinate("11", &x, &y, 1, "x"));
+	assert(!_shellfront_parse_coordinate("1xx1", &x, &y, 1, "x"));
+	assert(!_shellfront_parse_coordinate("1yx1", &x, &y, 1, "x"));
+	assert(_shellfront_parse_coordinate("0,0", &x, &y, 0, ","));
+	assert(_shellfront_parse_coordinate("1x1", &x, &y, 1, "x"));
+	assert(_shellfront_parse_coordinate("1x2", &x, &y, 1, "x"));
+	assert(x == 1 && y == 2);
 	// unsigned long djb_hash(char *str)
 	assert(djb_hash("hi") == 5863446);
 	// char *sxprintf(char *fmt, ...)

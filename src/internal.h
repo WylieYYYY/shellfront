@@ -10,10 +10,9 @@
 
 // set error struct faster
 struct err_state define_error(char *msg);
-// parse window size argument
-int _shellfront_parse_size_str(char *size, long *x, long *y);
-// parse window location argument
-int _shellfront_parse_loc_str(char *loc, int *x, int *y);
+// parse coordinate arguments
+int _shellfront_parse_coordinate(char *size, long *left,
+	long *right, long min, char *delim);
 // djb2 hash function for lock file name for normalization
 unsigned long djb_hash(char *str);
 // allocate and perform snprintf automatically

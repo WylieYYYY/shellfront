@@ -7,10 +7,13 @@
 #include <string.h>
 
 struct err_state _shellfront_validate_opt(char *locstr, char *sizestr, struct shellfront_term_conf *config, GError *gtkerr) {
-	if (!_shellfront_parse_loc_str(locstr, &(config->x), &(config->y))) {
+	long long_x, long_y;
+	if (!_shellfront_parse_coordinate(locstr, &long_x, &long_y, 0, ",")) {
 		return define_error(_("Incorrect location format, should be X,Y"));
 	}
-	if (!_shellfront_parse_size_str(sizestr, &(config->width), &(config->height))) {
+	config->x = long_x;
+	config->y = long_y;
+	if (!_shellfront_parse_coordinate(sizestr, &(config->width), &(config->height), 1, "x")) {
 		return define_error(_("Incorrect size format, should be XxY"));
 	}
 	if (config->grav < 1 || config->grav > 9) {
