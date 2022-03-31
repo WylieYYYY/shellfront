@@ -33,9 +33,9 @@ int _shellfront_parse_coordinate(char *size, long *left,
 	int success = 1;
 	char *strtol_end;
 	*left = strtol(left_str, &strtol_end, 10);
-	if (*strtol_end != '\0') success = 0;
+	if (*strtol_end != '\0' || strtol_end == left_str) success = 0;
 	*right = strtol(cp, &strtol_end, 10);
-	if (*strtol_end != '\0') success = 0;
+	if (*strtol_end != '\0' || strtol_end == cp) success = 0;
 	free(left_str);
 	// validate result
 	return *left >= min && *right >= min && success;

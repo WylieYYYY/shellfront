@@ -36,7 +36,7 @@ so the testing environment is sandboxed. Then start from running the command in 
 
 4. Finish step 3 from setup above, install `gcovr`.
 5. Install `xvfb` and run `Xvfb :1 -screen 0 1600x1200x24 & export DISPLAY=:1` if no GUI is available.
-6. Build with `./configure --enable-unit-tests && make` and run it by using `LANG=C SHELL='/bin/bash' src/test`
+6. Build with `./configure --enable-unit-tests && make` and run it by using `LANG=C src/test`
 7. Check the result with `gcovr -r src -e 'src/t_*'` (append optional `-b` flag for branch coverage).
 
 The package can be uninstalled by using `sudo make uninstall` in the same directory.
@@ -93,13 +93,13 @@ int main(int argc, char **argv) {
 	struct shellfront_term_conf config = shellfront_term_conf_default;
 	config.width = 20;
 	config.height = 6;
-	config.desc = "- sample implementation for ShellFront";
-	bool switch = false;
+	config.desc = "- sample integration of ShellFront";
+	bool msg_switch = false;
 	GOptionEntry custom_opt[] = {
 		{
 			.long_name = "switch",
 			.arg = G_OPTION_ARG_NONE,
-			.arg_data = &switch,
+			.arg_data = &msg_switch,
 			.description = "Switches the message's text"
 		}, { 0 }
 	};
@@ -109,7 +109,7 @@ int main(int argc, char **argv) {
 		return state.has_error;
 	}
 	else if (strcmp(state.errmsg, "") != 0) return 0;
-	printf("Hi, switch is %s.\n", switch? "on" : "off");
+	printf("Hi, switch is %s.\n", msg_switch? "on" : "off");
 	fprintf(stderr, "Errors\n");
 	pause();
 	return 0;

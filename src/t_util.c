@@ -47,6 +47,9 @@ void test_util() {
 	assert(!_shellfront_parse_coordinate("11", &x, &y, 1, "x"));
 	assert(!_shellfront_parse_coordinate("1xx1", &x, &y, 1, "x"));
 	assert(!_shellfront_parse_coordinate("1yx1", &x, &y, 1, "x"));
+	assert(!_shellfront_parse_coordinate("x", &x, &y, 1, "x"));
+	assert(!_shellfront_parse_coordinate("1x", &x, &y, 1, "x"));
+	assert(!_shellfront_parse_coordinate("x1", &x, &y, 1, "x"));
 	assert(_shellfront_parse_coordinate("0,0", &x, &y, 0, ","));
 	assert(_shellfront_parse_coordinate("1x1", &x, &y, 1, "x"));
 	assert(_shellfront_parse_coordinate("1x2", &x, &y, 1, "x"));

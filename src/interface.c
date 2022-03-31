@@ -56,7 +56,8 @@ struct err_state _shellfront_unlock_process(char *exe_name) {
 	pid_buf[10] = '\0';
 	fread(pid_buf, 1, 10, tmpfp);
 	fclose(tmpfp);
-	int pid = atoi(pid_buf);
+	// don't actually care much about validation, all will be clear with the description
+	int pid = strtol(pid_buf, NULL, 10);
 	// open the process description file
 	char *procid = sxprintf("/proc/%i/comm", pid);
 	FILE *procfp = FOPEN(procid, "r");
