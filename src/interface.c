@@ -122,7 +122,7 @@ struct err_state _shellfront_initialize(struct _shellfront_env_data *data) {
 
 	// PID is guarenteed unique and can be used as APPID
 	char *appid = sxprintf("shellfront.proc%li", pid);
-	GtkApplication *app = gtk_application_new(appid, G_APPLICATION_DEFAULT_FLAGS);
+	GtkApplication *app = gtk_application_new(appid, G_APPLICATION_FLAGS_NONE);
 	free(appid);
 	// link terminal setup function
 	g_signal_connect(app, "activate", G_CALLBACK(_shellfront_gtk_activate), data);
