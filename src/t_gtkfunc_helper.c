@@ -1,3 +1,4 @@
+#include "internal.h"
 #include "shellfront.h"
 #include "test.h"
 
@@ -8,6 +9,7 @@
 void _shellfront_terminal_exit(VteTerminal *terminal, int status, GtkWindow *window);
 void _shellfront_window_show(GtkWindow *window, void *user_data);
 void _shellfront_window_focus_out(GtkWidget *widget, GdkEvent *event, GtkWindow *window);
+void _shellfront_kill_child(GtkWindow *window, struct _shellfront_env_data *data);
 void _shellfront_window_destroy(GtkWindow *window, void *user_data);
 void _shellfront_window_gravitate(int window_width, int window_height,
 	GdkRectangle *workarea, struct shellfront_term_conf *config);
@@ -20,6 +22,10 @@ void mock_gtk_window_close(GtkWindow *window) {
 void mock_gtk_window_present(GtkWindow *window) {
 	assert(window == (GtkWindow *)0xDEADBEEF);
 	add_test_state(TEST_STATE_WINDOW_PRESENTED);
+}
+pid_t mock_waitpid(pid_t pid, int *status, int options) {
+	assert(pid == 123 && options == WNOHANG);
+	add_test_state(TEST_STATE_CHILD_WAITED);
 }
 void mock_sig_exit(int signo) {
 	assert(signo == 2);
@@ -36,8 +42,15 @@ void test_gtkfunc_helper() {
 	// void _shellfront_window_focus_out(GtkWidget *widget, GdkEvent *event, GtkWindow *window)
 	_shellfront_window_focus_out(NULL, NULL, test_window);
 	assert_test_state(TEST_STATE_WINDOW_CLOSED);
+	// void _shellfront_kill_child(GtkWindow *window, struct _shellfront_env_data *data)
+	mock_env_data.child_pid = 123;
+	_shellfront_kill_child(NULL, &mock_env_data);
+	assert_test_state(TEST_STATE_PROCESS_KILLED);
+	assert_test_state(TEST_STATE_CHILD_WAITED);
 	// void _shellfront_window_destroy(GtkWindow *window, void *user_data)
-	_shellfront_window_destroy(NULL, NULL);
+	_shellfront_window_destroy(NULL, &mock_env_data);
+	assert_test_state(TEST_STATE_PROCESS_KILLED);
+	assert_test_state(TEST_STATE_CHILD_WAITED);
 	assert_test_state(TEST_STATE_EXITED);
 	// void _shellfront_window_gravitate(int *window_width, int *window_height,
 	// 	GdkRectangle *workarea, struct shellfront_term_conf *config)

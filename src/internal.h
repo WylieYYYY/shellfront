@@ -36,6 +36,8 @@ struct _shellfront_env_data {
 	int argc;
 	// argument vector of original main()
 	char **argv;
+	// forked child's PID
+	pid_t child_pid;
 };
 // the start of the GTK+ app
 void _shellfront_gtk_activate(GtkApplication *app, struct _shellfront_env_data *data);

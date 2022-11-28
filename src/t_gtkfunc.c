@@ -11,8 +11,10 @@
 void test_gtkfunc_helper(void);
 
 extern struct err_state _shellfront_fork_state;
-void _shellfront_apply_opt(GtkWindow *window, VteTerminal *terminal, struct shellfront_term_conf *config);
+void _shellfront_apply_opt(GtkWindow *window, VteTerminal *terminal,
+	struct shellfront_term_conf *config, struct _shellfront_env_data *data);
 void _shellfront_window_focus_out(GtkWidget *widget, GdkEvent *event, GtkWindow *window);
+void _shellfront_kill_child(GtkWindow *window, struct _shellfront_env_data *data);
 void _shellfront_window_destroy(GtkWindow *window, void *user_data);
 void _shellfront_child_process_setup(int pid, VtePty *pty, struct _shellfront_env_data *data);
 void _shellfront_configure_terminal(VteTerminal *terminal, struct _shellfront_env_data *data);
@@ -121,7 +123,7 @@ pid_t mock_fork(VteTerminal *terminal) {
 	assert(strcmp(_shellfront_fork_state.errmsg, "Error message") == 0);
 	assert(vte_terminal_get_pty(terminal) == test_pty);
 	if (test_state_contains(TEST_STATE_WILL_FAIL_FORK)) return -1;
-	if (test_state_contains(TEST_STATE_WILL_BE_PARENT_PROCESS)) return 1;
+	if (test_state_contains(TEST_STATE_WILL_BE_PARENT_PROCESS)) return 123;
 	return 0;
 }
 
@@ -143,7 +145,7 @@ void test_gtkfunc() {
 	config.icon = "";
 	window = GTK_WINDOW(gtk_window_new(GTK_WINDOW_TOPLEVEL));
 	test_terminal = VTE_TERMINAL(vte_terminal_new());
-	_shellfront_apply_opt(window, test_terminal, &config);
+	_shellfront_apply_opt(window, test_terminal, &config, &mock_env_data);
 	assert(!gtk_widget_get_sensitive(GTK_WIDGET(test_terminal)));
 	assert(!gtk_window_get_decorated(window));
 	assert(gtk_window_get_skip_taskbar_hint(window));
@@ -152,10 +154,14 @@ void test_gtkfunc() {
 		G_SIGNAL_MATCH_ID | G_SIGNAL_MATCH_FUNC | G_SIGNAL_MATCH_DATA,
 		sigid, 0, NULL, &_shellfront_window_focus_out, window);
 	assert(sighandler != 0);
+	sigid = g_signal_lookup("destroy", G_TYPE_FROM_INSTANCE(window));
+	sighandler = g_signal_handler_find(window,
+		G_SIGNAL_MATCH_ID | G_SIGNAL_MATCH_FUNC, sigid, 0, NULL, &_shellfront_kill_child, window);
+	assert(sighandler != 0);
 	assert(gtk_window_get_icon(window) == NULL);
 	// test icon error
 	config.icon = "/";
-	_shellfront_apply_opt(window, test_terminal, &config);
+	_shellfront_apply_opt(window, test_terminal, &config, &mock_env_data);
 	assert_test_state(TEST_STATE_ERROR_STATE_PRINTED);
 	assert(gtk_window_get_icon(window) == NULL);
 	gtk_widget_destroy(GTK_WIDGET(window));
@@ -190,6 +196,7 @@ void test_gtkfunc() {
 	add_test_state(TEST_STATE_WILL_RETURN_ERROR);
 	_shellfront_configure_terminal(test_terminal, &mock_env_data);
 	assert_test_state_not(TEST_STATE_CHILD_PROCESS_SETUP);
+	assert(mock_env_data.child_pid == 123);
 	// no integrate
 	mock_env_data.is_integrate = 0;
 	_shellfront_configure_terminal(test_terminal, &mock_env_data);

@@ -12,6 +12,7 @@ enum test_states {
 	// t_gtkfunc_helper
 	TEST_STATE_WINDOW_CLOSED,
 	TEST_STATE_WINDOW_PRESENTED,
+	TEST_STATE_CHILD_WAITED,
 	// t_gtkfunc_helper, t_interface
 	TEST_STATE_EXITED,
 	// t_gtkfunc
@@ -40,7 +41,7 @@ enum test_states {
 	TEST_STATE_WILL_FAIL_INITIALIZE,
 	TEST_STATE_WILL_FAIL_PARSE,
 	TEST_STATE_WILL_FAIL_START_PROCESS
-}; // 25
+}; // 26
 
 extern long int test_state;
 extern GError mock_gerror;
@@ -73,7 +74,7 @@ static inline void _assert_test_state(char *filename, int line, enum test_states
 		assert((test_state == TEST_STATE_NONE || test_state == TEST_STATE_META_ASSERTED) != inverted);
 	}
 	else assert(_check_flag_from_enum(state) != inverted);
-	add_test_state(TEST_STATE_META_ASSERTED);
+	test_state |= 1 << TEST_STATE_META_ASSERTED - 1;
 }
 
 #define assert_test_state(x) _assert_test_state(__FILE__,__LINE__,x, false)

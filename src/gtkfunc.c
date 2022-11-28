@@ -4,6 +4,7 @@
 #include <gtk/gtk.h>
 #include <signal.h>
 #include <stdlib.h>
+#include <sys/wait.h>
 #include <unistd.h>
 #include <vte/vte.h>
 
@@ -14,6 +15,10 @@
 	#define gtk_window_close(x) mock_gtk_window_close(x)
 	void mock_gtk_window_present(GtkWindow *window);
 	#define gtk_window_present(x) mock_gtk_window_present(x)
+	int mock_kill(pid_t pid, int sig);
+	#define kill(x,y) mock_kill(x,y)
+	pid_t mock_waitpid(pid_t pid, int *status, int options);
+	#define waitpid(x,y,z) mock_waitpid(x,y,z)
 	void mock_sig_exit(int signo);
 	#define _shellfront_sig_exit(x) mock_sig_exit(x)
 	void mock_err_string_arg(FILE *fp, char *fmt, char *str);
@@ -61,8 +66,13 @@ struct err_state _shellfront_fork_state = {};
 void _shellfront_window_show(GtkWindow *window, void *user_data) {
 	gtk_window_present(window);
 }
+void _shellfront_kill_child(GtkWindow *window, struct _shellfront_env_data *data) {
+	kill(data->child_pid, SIGTERM);
+	waitpid(data->child_pid, NULL, WNOHANG);
+}
 // also give out signal to handler when closed with "once" flag
-void _shellfront_window_destroy(GtkWindow *window, void *user_data) {
+void _shellfront_window_destroy(GtkWindow *window, struct _shellfront_env_data *data) {
+	_shellfront_kill_child(window, data);
 	_shellfront_sig_exit(2);
 }
 // if terminal closed, close the window
@@ -85,9 +95,11 @@ void _shellfront_window_gravitate(int window_width, int window_height,
 	// take vertical taskbar into consideration
 	else config->y += workarea->y;
 }
-void _shellfront_apply_opt(GtkWindow *window, VteTerminal *terminal, struct shellfront_term_conf *config) {
+void _shellfront_apply_opt(GtkWindow *window, VteTerminal *terminal,
+	struct shellfront_term_conf *config, struct _shellfront_env_data *data) {
 	// remove the lock file and free ID string when window destroy
-	if (config->once) g_signal_connect(window, "destroy", G_CALLBACK(_shellfront_window_destroy), NULL);
+	if (config->once) g_signal_connect(window, "destroy", G_CALLBACK(_shellfront_window_destroy), data);
+	else g_signal_connect(window, "destroy", G_CALLBACK(_shellfront_kill_child), data);
 
 	// don't give any attention if it is not interactive
 	if (!config->interactive) gtk_widget_set_sensitive(GTK_WIDGET(terminal), FALSE);
@@ -129,6 +141,7 @@ void _shellfront_configure_terminal(VteTerminal *terminal, struct _shellfront_en
 		vte_terminal_set_pty(terminal, pty);
 		pid_t pid = fork();
 		if (pid <= 0) _SHELLFRONT_CHILD_PROCESS_SETUP(pid, pty, data);
+		data->child_pid = pid;
 	} else {
 		// using the default terminal shell
 		char *shell = vte_get_user_shell();
@@ -145,7 +158,7 @@ void _shellfront_gtk_activate(GtkApplication *app, struct _shellfront_env_data *
 	GtkWindow *window = GTK_WINDOW(gtk_application_window_new(app));
 	VteTerminal *terminal = VTE_TERMINAL(vte_terminal_new());
 
-	_shellfront_apply_opt(window, terminal, config);
+	_shellfront_apply_opt(window, terminal, config, data);
 
 	// set the window title
 	gtk_window_set_title(window, config->title);
