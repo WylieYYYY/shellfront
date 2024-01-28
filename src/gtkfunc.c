@@ -72,7 +72,6 @@ void _shellfront_kill_child(GtkWindow *window, struct _shellfront_env_data *data
 }
 // also give out signal to handler when closed with "once" flag
 void _shellfront_window_destroy(GtkWindow *window, struct _shellfront_env_data *data) {
-	_shellfront_kill_child(window, data);
 	_shellfront_sig_exit(2);
 }
 // if terminal closed, close the window
@@ -98,8 +97,8 @@ void _shellfront_window_gravitate(int window_width, int window_height,
 void _shellfront_apply_opt(GtkWindow *window, VteTerminal *terminal,
 	struct shellfront_term_conf *config, struct _shellfront_env_data *data) {
 	// remove the lock file and free ID string when window destroy
+	if (data->is_integrate) g_signal_connect(window, "destroy", G_CALLBACK(_shellfront_kill_child), data);
 	if (config->once) g_signal_connect(window, "destroy", G_CALLBACK(_shellfront_window_destroy), data);
-	else g_signal_connect(window, "destroy", G_CALLBACK(_shellfront_kill_child), data);
 
 	// don't give any attention if it is not interactive
 	if (!config->interactive) gtk_widget_set_sensitive(GTK_WIDGET(terminal), FALSE);

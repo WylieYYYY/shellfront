@@ -36,6 +36,7 @@ test:
         - ./configure --enable-unit-tests
         - make
         - src/test
-        - gcovr -e 'src/t_*' -r src
+        - gcovr -e 'src/t_*' -b -r src
     except:
         - dev
+    coverage: '/^TOTAL.*\s+(\d+\%)$/'

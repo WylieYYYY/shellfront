@@ -174,6 +174,7 @@ void test_gtkfunc() {
 	config.cmd = "command";
 	config.grav = 5;
 	mock_env_data.term_conf = &config;
+	mock_env_data.is_integrate = 0;
 	_shellfront_gtk_activate(NULL, &mock_env_data);
 	assert_test_state(TEST_STATE_WIDGET_SHOWED);
 	int x, y;

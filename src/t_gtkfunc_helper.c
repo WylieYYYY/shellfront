@@ -49,8 +49,6 @@ void test_gtkfunc_helper() {
 	assert_test_state(TEST_STATE_CHILD_WAITED);
 	// void _shellfront_window_destroy(GtkWindow *window, void *user_data)
 	_shellfront_window_destroy(NULL, &mock_env_data);
-	assert_test_state(TEST_STATE_PROCESS_KILLED);
-	assert_test_state(TEST_STATE_CHILD_WAITED);
 	assert_test_state(TEST_STATE_EXITED);
 	// void _shellfront_window_gravitate(int *window_width, int *window_height,
 	// 	GdkRectangle *workarea, struct shellfront_term_conf *config)

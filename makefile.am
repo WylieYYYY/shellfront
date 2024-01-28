@@ -1,4 +1,4 @@
 SUBDIRS = src po
 
-pkgconfigdir = /usr/lib/pkgconfig
+pkgconfigdir = ${libdir}/pkgconfig
 pkgconfig_DATA = shellfront.pc
